@@ -40,7 +40,7 @@
     {
       "id": "position",
       "label": "Position",
-      "default": 0,
+      "default": 0.25,
       "mapping": {
         "kind": "linear",
         "minimum": 0,
@@ -98,7 +98,7 @@
       "structure": 0.25,
       "bright": 0.5,
       "damping": 0.6,
-      "position": 0,
+      "position": 0.25,
       "model": 0.125,
       "modes": 0.375,
       "strike": 0
