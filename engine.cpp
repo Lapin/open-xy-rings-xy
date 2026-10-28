@@ -254,7 +254,7 @@ inline void limit(Voice& voice, const i32* sum, i32* output, i32 pre_gain_extra,
 inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightness, i32 damping, i32 position,
                            u32 increment, u32 strings, bool dirty, i32* sum) {
     const i32 stiffness = harmonic_centre(structure);  // the main string's dispersion; the notes keep the raw knob
-    const u32 count = model == kString ? 1 : strings;
+    const u32 count = strings;
     for (u32 n = count; n < kStrings; ++n) voice.strings[n].active = 0;
     i32 input[opxy::block_frames];
     i32 bridge[opxy::block_frames];
@@ -263,8 +263,12 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
         for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = 0;
         return;
     }
+    // The string model's extras are unison copies a few cents apart, a
+    // thickening that is not in Rings; the sympathetic models tune theirs.
+    static const i32 kDetune[kStrings] = {0, 1565873, -2013266, 2684354};  // 0, +7, -9, +12 cents, Q28 octaves
     i32 offsets[kStrings] = {0, 0, 0, 0};
-    if (model != kString) sympathetic_notes(structure, model, offsets);  // chords tune the main string too
+    if (model == kString) { for (u32 n = 0; n < kStrings; ++n) offsets[n] = kDetune[n]; }
+    else sympathetic_notes(structure, model, offsets);  // chords tune the main string too
     for (u32 n = 0; n < count; ++n) {
         String& s = voice.strings[n];
         if (!s.active) {
@@ -285,6 +289,7 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
             // Sympathetic strings glide to their notes, duller and well damped,
             // their pickup wandering with a slow LFO.
             s.target = static_cast<u32>(exp2_scale(static_cast<i32>(increment >> 1), offsets[n])) << 1;
+          if (model != kString) {
             bright = bend(bend(brightness));
             damp = 1503238554 + multiply(damping, 579820585);                                  // 0.7 + 0.27 d
             const i32 off_centre = position - (kOne >> 1);
@@ -293,6 +298,7 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
             voice.lfo[n] = (voice.lfo[n] + kLfoRates[n]) & 0x7fffffffu;
             const i32 wave = (kOne >> 1) + (cosine(voice.lfo[n]) >> 1);                        // 0..1
             pos = position + multiply(wave, amount);
+          }
             const i32 glide = exp2_scale(kOne, ((bright - kOne) >> 3) * 3);                     // 2^((b - 1) 3)
             const i32 gap = static_cast<i32>(s.target - s.increment);
             const u32 before = s.increment;
@@ -305,7 +311,7 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
             if (!retune) set_pickup(s, pos);
         }
         const i32 index = static_cast<i32>(n * (2147483648u / count));                        // n / count, Q31
-        damp += multiply(index, 2040109466 - damp);                                           // towards 0.95 up the bank
+        if (model != kString) damp += multiply(index, 2040109466 - damp);                     // towards 0.95 up the bank
         Stretch* stretch = (n == 0 && model == kString) ? &voice.stretch : 0;
         if (retune) tune_string(s, stretch, stiffness, bright, damp, pos);
         render_string(s, stretch, voice.seed, n == 0 ? input : bridge, sum, n == 0 ? bridge : 0);
@@ -314,7 +320,8 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
             // itself, as Rings' strings do from an external exciter: with the
             // internal one alone they barely spoke, and the bank's size was lost.
             const i32 feed = 107374182;                                                        // 0.2 / 4
-            for (unsigned i = 0; i < opxy::block_frames; ++i) bridge[i] = multiply(bridge[i], feed) + (input[i] >> 1);
+            if (model == kString) for (unsigned i = 0; i < opxy::block_frames; ++i) bridge[i] = input[i];  // unison copies: the pluck itself
+            else for (unsigned i = 0; i < opxy::block_frames; ++i) bridge[i] = multiply(bridge[i], feed) + (input[i] >> 1);
         }
     }
     // Rung down below -120 dB with the pluck spent: nothing until the next note.
@@ -372,7 +379,7 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
             {1717986918, 1717986918, 1717986918, 1717986918},
             {1932735283, 1288490189, 1288490189, 1288490189},
             {2147483647, 1717986918, 1717986918, 1717986918}};
-        const u32 strings = model == kString ? 1 : string_count(static_cast<i32>(modes_control));
+        const u32 strings = string_count(static_cast<i32>(modes_control));
         for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = multiply(sum[i], kTrimHalf[model][strings - 1]) * 2;
         if (model == kString) limit(voice, sum, output, kPoint4, kOutput);
         else limit(voice, sum, output, 0, kOutputUnity);

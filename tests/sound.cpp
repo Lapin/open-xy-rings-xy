@@ -156,7 +156,7 @@ int main() {
         std::printf("string period %d samples (expected %.1f)\n", best_lag, 44100.0 / 220);
         check(best_lag >= 200 && best_lag <= 201, "string out of tune");
         // Damping lengthens the string's ring.
-        Note dry(220, 0.5, 0.6, 0.2, 0.5, modes8, 0, 0.375), wet(220, 0.5, 0.6, 0.9, 0.5, modes8, 0, 0.375);
+        Note dry(220, 0.5, 0.6, 0.2, 0.5, 0.125, 0, 0.375), wet(220, 0.5, 0.6, 0.9, 0.5, 0.125, 0, 0.375);
         dry.render(4); wet.render(4);
         dry.render(30); wet.render(30);
         check(wet.render(10) > dry.render(10), "string Damping direction");
