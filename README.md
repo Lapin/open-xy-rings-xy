@@ -44,13 +44,14 @@ twelve paisleys under two wavy rings; the string body has a lotus drawn in
 code, eight petals with smaller petals and eyes inside, eight more between
 them with beads and dots, in two rings; the sympathetic body has a drawn
 ring of twelve circles with leaf veins inside, then small circles with
-triangles between them and an outer ring of dashes that turns the other
-way; the chords body is a drawn flower: three rings of lens petals,
+triangles between them and an outer ring; the chords body is a drawn flower: three rings of lens petals,
 each turned half a step from the last, the innermost raised towards the
 big ones' tips, the second veined under pointed windows with rungs, rings
 between, a ring and a fringe of rounded fingers. The body circle shrinks to
 sit inside the denser ones. The mandala turns slowly at rest, is kicked by
-every note and eases back over Damping's time; Structure brings its pieces in
+every note and eases back over Damping's time, one part of it turning the
+other way: the string body's wave, the sympathetic body's circles and veins,
+the chords body's fringe; Structure brings its pieces in
 from the smallest out, and every note lights them in that order, a ripple from
 the centre out, each recent note with its own. Position shapes the inside:
 more rings on the modal body, more bars on the string body and more strings

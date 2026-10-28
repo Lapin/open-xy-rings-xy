@@ -117,7 +117,7 @@ def drawn_lotus():
     petals between them, an outer ring and its dots. Pieces are (name, shape, fill, layer, count)."""
     fold = 8
     pieces = [('ring_inner', ('path', circle_path(45)), False, 0, 1),
-              ('wave', ('path', wave_ring(48.5, 2 * fold, 2.5)), False, 0, 1),
+              ('wave', ('path', wave_ring(48.5, 2 * fold, 2.5)), REVERSE, 0, 1),
               ('petal', ('path', petal(53, 74, 19)), False, 1, fold),
               ('petal_inner', ('path', petal(56, 67, 9)), False, 2, fold),
               ('eye', ('circle', 0, -60, 2), True, 3, fold),
@@ -136,28 +136,18 @@ def triangle(r0, r1, half_degrees, turn):
     return [turned(x, y, turn) for x, y in pts]
 
 
-def dash(radius, degrees, steps=6):
-    """An arc of the given span centred at the top, as a thin ribbon."""
-    a0, a1 = math.radians(-degrees / 2), math.radians(degrees / 2)
-    pts = []
-    for r in ((radius + 0.4), (radius - 0.4)):
-        arc = [(r * math.sin(a0 + (a1 - a0) * i / (steps - 1)), -r * math.cos(a0 + (a1 - a0) * i / (steps - 1))) for i in range(steps)]
-        pts += arc if r > radius else arc[::-1]
-    return pts
-
-
 def drawn_sympathetic():
     """The sympathetic body's mandala, drawn: twelve circles each with a
     leaf's veins inside, a ring, small circles with triangles between them,
-    and an outer ring of dashes that turns the other way (REVERSE)."""
+    and an outer ring; the circles and their veins turn the other way."""
     fold = 12
     half = 360 / fold / 2
-    pieces = [('loop', ('circle', 0, -56, 14), False, 0, fold),
-              ('veins', ('path', leaf_veins(0, -56, 14)), False, 1, 1 * fold),
+    pieces = [('loop', ('circle', 0, -56, 14), REVERSE, 0, fold),
+              ('veins', ('path', leaf_veins(0, -56, 14)), REVERSE, 1, 1 * fold),
               ('ring_mid', ('path', circle_path(71)), False, 2, 1),
               ('small', ('circle', 0, -76, 3), False, 3, fold),
               ('triangle', ('path', triangle(73, 85, 8, half)), False, 4, fold),
-              ('dash_outer', ('path', dash(87, 18)), REVERSE, 5, fold)]
+              ('ring_outer', ('path', circle_path(87)), False, 5, 1)]
     return fold, pieces, 1.0
 
 
@@ -224,7 +214,7 @@ def drawn_chords():
               ('tower', ('path', tower(42, 57, 72, 7, half, (60, 65), half=0.25)), False, 3, fold),
               ('dot', ('circle', *turned(0, -71, half / 2), 3), False, 4, 2 * fold),
               ('ring', ('path', circle_path(77)), False, 5, 1),
-              ('fringe', ('path', crown(77.5, 88, 40)), False, 6, 1)]
+              ('fringe', ('path', crown(77.5, 88, 40)), REVERSE, 6, 1)]
     return fold, pieces, 1.0
 
 
