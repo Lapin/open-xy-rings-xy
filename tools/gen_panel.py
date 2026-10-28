@@ -21,7 +21,7 @@ from panel_paths import simplify  # noqa: E402
 ID = 'mi_rings'
 CX, CY = 240, 130                      # the body's centre
 BODY = 40                              # the body circle's radius
-INNER_RINGS = 6                        # the modal body's rings, as many as Position asks for
+INNER_RINGS = 5                        # the modal body's rings, as many as Position asks for
 PATHS, POINTS = 4, 64                  # mutable outlines: the string, sympathetic and chords bodies' insides
 LED_X = (30, 450)                      # model LEDs left, modes LEDs right
 LED_Y = (82, 114, 146, 178)
@@ -375,7 +375,8 @@ for model in MODELS:
         pieces = [('pupil', ('circle', ex, ey, 1.2), True, 0, fold), ('eye', ('circle', ex, ey, er), False, 1, fold),
                   ('drop', ('path', drop), False, 2, fold), ('inner', ('path', paisley(P['inner']['points'])), False, 3, fold),
                   ('outline', ('path', paisley(P['outline']['points'])), False, 4, fold),
-                  ('ring_inner', ('path', wavy_ring(RING_R)), False, 5, 1), ('ring_outer', ('path', wavy_ring(RING_R + RING_GAP)), False, 5, 1)]
+                  ('ring_inner', ('path', wavy_ring(RING_R)), False, 5, 1), ('ring_outer', ('path', wavy_ring(RING_R + RING_GAP)), False, 5, 1),
+                  ('bead', ('circle', *turned(0, -(RING_R + RING_GAP + RING_WAVE + 3.5), 180 / WAVES), 2.5), REVERSE, 6, WAVES)]
         body = 1.0
     elif model == 'string':
         fold, pieces, body = drawn_lotus()

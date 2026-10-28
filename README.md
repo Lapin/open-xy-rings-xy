@@ -50,7 +50,7 @@ big ones' tips, the second veined under pointed windows with rungs, rings
 between, a ring and a fringe of rounded fingers. The body circle shrinks to
 sit inside the denser ones. The mandala turns slowly at rest, is kicked by
 every note and eases back over Damping's time, one part of it turning the
-other way: the string body's wave, the sympathetic body's circles and veins,
+other way: the modal body's beads outside its wavy rings, the string body's wave, the sympathetic body's circles and veins,
 the chords body's fringe; Structure brings its pieces in
 from the smallest out, and every note lights them in that order, a ripple from
 the centre out, each recent note with its own. Position shapes the inside:

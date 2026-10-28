@@ -229,13 +229,13 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 inside = clamp(bright + glow, 1, 15);
     const i32 reach = position >> 21;                                    // 0..1023: how far Position goes
     // The modal body: rings from the centre out, as many as Position asks
-    // for, none at 0 and six at full, the newest fading in. Authored at the
-    // body's radius, so ring i sits at (i + 1) / 7 of it.
+    // for, none at 0 and all at full, the newest fading in. Authored at the
+    // body's radius, so ring i sits at (i + 1) / (kInnerRings + 1) of it.
     for (u32 i = 0; i < kInnerRings; ++i) {
         const i32 shown = clamp(reach * static_cast<i32>(kInnerRings) - static_cast<i32>(i) * unit, 0, unit);
         const i32 shade = inside * shown >> 10;
         if (model != kModal || shade <= 0) { hide(frame, kFirstInner + i); continue; }
-        place(frame, kFirstInner + i, kCentreX, kCentreY, swell * static_cast<i32>(i + 1) / 7, static_cast<u32>(shade), stroke);
+        place(frame, kFirstInner + i, kCentreX, kCentreY, swell * static_cast<i32>(i + 1) / static_cast<i32>(kInnerRings + 1), static_cast<u32>(shade), stroke);
     }
     // The mutable outlines, drawn fresh every frame for the model and placed at
     // the body's centre at its swell: the key changes with them so the
