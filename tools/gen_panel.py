@@ -76,6 +76,16 @@ def paisley_circle(points):
     return cx, cy, sum(math.hypot(x - cx, y - cy) for x, y in local) / len(local)
 
 
+def teardrop(cx, cy, r, tip_y, steps=14):
+    """A smooth drop: a circle of radius r about (cx, cy) drawn out to a tip at (cx, tip_y)."""
+    d = cy - tip_y
+    alpha = math.asin(r / d)                       # the tangents' angle from the axis
+    start, end = -math.pi / 2 + alpha, 3 * math.pi / 2 - alpha
+    arc = [(cx + r * math.cos(start + (end - start) * i / steps), cy + r * math.sin(start + (end - start) * i / steps))
+           for i in range(steps + 1)]
+    return [(cx, tip_y)] + arc
+
+
 def wavy_ring(radius):
     return [((radius + RING_WAVE * math.cos(WAVES * t)) * math.sin(t), -(radius + RING_WAVE * math.cos(WAVES * t)) * math.cos(t))
             for t in (2 * math.pi * i / WAVE_POINTS for i in range(WAVE_POINTS))]
@@ -174,11 +184,16 @@ out.append('<!-- The mandala, lifted from the Rings panel: twelve paisleys, tips
 out.append('     with a notch for every tip, and twelve circled dots beyond; every piece authored upright at')
 out.append('     the centre and turned by the display. -->')
 P = MOTIF['paisley']
-for first, key in ((FIRST_OUTLINE, 'outline'), (FIRST_INNER_DROP, 'inner'), (FIRST_DROP, 'drop')):
+for first, key in ((FIRST_OUTLINE, 'outline'), (FIRST_INNER_DROP, 'inner')):
     for i in range(PAISLEYS):
         out.append(node(first + i, paisley(P[key]), width=0.8))
+# The eye sits clear of the inner teardrop, the drop clear of both, the pupil in the eye.
 ex, ey, er = paisley_circle(P['eye'])
-px, py, pr = paisley_circle(P['pupil'])
+er *= 0.8
+px, py, pr = ex, ey, 1.2
+drop = teardrop(ex, ey - er - 4.0, 1.3, ey - er - 8.6)
+for i in range(PAISLEYS):
+    out.append(node(FIRST_DROP + i, drop, width=0.8))
 for i in range(PAISLEYS):
     out.append(f'<circle id="{ID}_node_{FIRST_EYE + i}" {PARKED} cx="{num(ex)}" cy="{num(ey)}" r="{num(er)}" fill="none" stroke="#808080" stroke-width="0.8"/>')
 for i in range(PAISLEYS):

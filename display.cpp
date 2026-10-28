@@ -153,32 +153,36 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         place(frame, node, strike_x, kCentreY, clamp(radius / kAuthoredRipple, unit / 8, 2 * unit), static_cast<u32>(shade), stroke);
     }
 
-    // The mandala, lifted from the Rings panel: Structure brings its detail in,
-    // the paisleys' outlines first, then their inner teardrops, then the eyes,
-    // then the wavy rings, and last the circled dots turning the other way. All
-    // share the turn; a note brightens them.
+    // The mandala, lifted from the Rings panel, in seven layers from the smallest
+    // piece out: pupils, eyes, drops, inner teardrops, outlines, the wavy rings,
+    // the circled dots. Structure brings the layers in in that order, and a note
+    // lights them in that order too, a ripple from the centre out over the
+    // kick's life. All share the turn; the dots turn the other way.
     const i32 detail = structure >> 21;                                  // 0..1023
-    const i32 level = 6 + (flash * 6 >> 10);                             // 6..12
-    const i32 inner_fade = fade(detail, 40, 300);
-    const i32 eye_fade = fade(detail, 280, 560);
-    const i32 ring_fade = fade(detail, 520, 780);
-    const i32 dot_fade = fade(detail, 740, 980);
+    const i32 progress = clamp(state.age * rate >> 10, 0, unit);        // 0..1 over the kick's life
+    i32 layer[7];
+    for (u32 k = 0; k < 7; ++k) {
+        const i32 start = static_cast<i32>(k) * 150 - 130;              // pupils always, dots from 770
+        const i32 shown = k == 0 ? unit : fade(detail, start, start + 160);
+        const i32 away = progress - static_cast<i32>(k) * 96;
+        const i32 pulse = clamp(unit - (away < 0 ? -away : away) * 4, 0, unit);
+        layer[k] = (6 * shown + 7 * pulse) >> 10;
+    }
     for (u32 i = 0; i < kPaisleys; ++i) {
         const i32 tenths = state.angle + static_cast<i32>(i) * 300;
-        petal(frame, kFirstOutline + i, tenths, level);
-        petal(frame, kFirstInnerDrop + i, tenths, (level - 1) * inner_fade >> 10);
-        const i32 eye = (level - 2) * eye_fade >> 10;
-        petal(frame, kFirstEye + i, tenths, eye);
-        petal(frame, kFirstPupil + i, tenths, eye, fill_and_stroke);
-        petal(frame, kFirstDrop + i, tenths, eye);
+        petal(frame, kFirstPupil + i, tenths, layer[0], fill_and_stroke);
+        petal(frame, kFirstEye + i, tenths, layer[1]);
+        petal(frame, kFirstDrop + i, tenths, layer[2]);
+        petal(frame, kFirstInnerDrop + i, tenths, layer[3]);
+        petal(frame, kFirstOutline + i, tenths, layer[4]);
     }
-    petal(frame, kRingInner, state.angle, (level - 2) * ring_fade >> 10);
-    petal(frame, kRingOuter, state.angle, (level - 3) * ring_fade >> 10);
+    petal(frame, kRingInner, state.angle, layer[5]);
+    petal(frame, kRingOuter, state.angle, layer[5]);
     const i32 counter = 3600 - (state.angle * 3 >> 2);
     for (u32 i = 0; i < kPaisleys; ++i) {
         const i32 tenths = counter + static_cast<i32>(i) * 300;
-        petal(frame, kFirstDotRing + i, tenths, (level - 2) * dot_fade >> 10);
-        petal(frame, kFirstDot + i, tenths, (level - 2) * dot_fade >> 10, fill_and_stroke);
+        petal(frame, kFirstDotRing + i, tenths, layer[6]);
+        petal(frame, kFirstDot + i, tenths, layer[6], fill_and_stroke);
     }
 
     // The LEDs: the chosen one lit, a halo on it while the change is fresh.

@@ -29,8 +29,8 @@ motif = {
     'source': 'Mutable Instruments Rings panel, Frequency mandala (CC BY-SA 3.0)',
     'units': 'panel points about the knob centre; y down; the paisley points up',
     'paisley': {
-        'outline': piece(60, 11, TURN),
-        'inner': piece(60, 10, TURN, 0.03),
+        'outline': piece(60, 11, TURN, 0.03),
+        'inner': piece(60, 10, TURN, 0.012),
         'eye': piece(94, 1, TURN),
         'pupil': piece(114, 0, TURN),
         'drop': piece(95, 1, TURN, 0.03),
