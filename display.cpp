@@ -172,7 +172,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const u32 modes = choice4(input.slots[6]);
     opxy::draw::copy(values[4], header_capacity, kModelNames[model]);
     opxy::draw::copy(values[6], header_capacity, kModeNames[modes]);
-    const opxy::u8 slots[2][4] = {{0, 1, 2, 3}, {4, 5, 6, 3}};     // page 2: Model, Strike, Modes, and Position shared
+    const opxy::u8 slots[2][4] = {{0, 1, 2, 3}, {4, 5, 3, 6}};     // page 2: Model, Strike, Position shared, Modes
     page_header(state.header, input, frame, titles, values, kHeaderNode, slots);
 
     const i32 structure = clamp(input.slots[0], 0, opxy::q31::maximum);
