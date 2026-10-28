@@ -6,8 +6,9 @@ namespace mi_rings {
 // Matches resources.display in definition.json: paths, points, nodes, texts, palette.
 // The node map, shared with tools/gen_panel.py:
 //   0..7 the header bar; 8 the body circle; 9..11 its inner rings; 12 the centre
-//   dot; 13 the pluck point; 14..16 ripples; then the string body's dashes,
-//   the sympathetic body's waves and the chords body's lines; the four
+//   dot; 13 the pluck point; 14..16 ripples; then the string body's meter
+//   bars, the sympathetic body's waves, calm and bent, and the chords body's
+//   lines; the four
 //   mandalas, one per model, laid out in mandala.h (generated with the
 //   artwork); the lit model LED, the lit modes LED and the two halos.
 using Frame = opxy::draw::Frame<0, 0, kNodes, 16, 16>;

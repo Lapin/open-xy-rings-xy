@@ -130,8 +130,8 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
 
     // The body: its circle, shrunk to sit inside the model's mandala, swells a
     // little with a note. Inside, lit by Bright: rings for the modal body,
-    // dashes for the string body, waves for the sympathetic, lines for the
-    // chords, each stirred by a note and kept within the circle.
+    // meter bars for the string body, waves for the sympathetic, lines for
+    // the chords, each stirred by a note and kept within the circle.
     const Mandala& mandala = kMandalas[model];
     const i32 body = mandala.body_scale;                                 // Q10
     const i32 swell = (unit + (flash * 40 >> 10)) * body >> 10;
@@ -145,28 +145,29 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         if (model != kModal) { hide(frame, kFirstInner + i); continue; }
         place(frame, kFirstInner + i, kCentreX, kCentreY, swell, static_cast<u32>(inside), stroke);
     }
-    // The string body: five dashes that flip up into bars of a spectrum on a
-    // note, shimmering, and lie back down as it fades. The authored dash is
-    // 16 px, so scale 0.6 is a dash and 2 a bar.
-    static const i32 kBarLevel[kDashes] = {1300, 2048, 1600, 1950, 1150};   // Q10 scales when struck
-    static const i32 kBarRate[kDashes] = {37, 29, 47, 23, 53};
-    for (u32 i = 0; i < kDashes; ++i) {
-        const u32 node = kFirstDash + i;
+    // The string body: five meter bars, short at rest, that leap to a loose
+    // spectrum on a note, each wavering at its own rate, and settle as it fades.
+    // The authored bar is 14 px tall, so scale 0.3 is a tick and 2 a full bar.
+    static const i32 kBarLevel[kBars] = {1500, 2048, 1750, 2048, 1500};   // Q10 scales when struck
+    static const i32 kBarRate[kBars] = {37, 29, 47, 23, 53};
+    static const i32 kBarPhase[kBars] = {0, 700, 1400, 2100, 2800};
+    for (u32 i = 0; i < kBars; ++i) {
+        const u32 node = kFirstBar + i;
         if (model != kString) { hide(frame, node); continue; }
-        const i32 shimmer = unit - (unit - sine((state.age * kBarRate[i]) % 3600)) * 120 / 2048;  // 0.88..1
-        const i32 level = clamp(614 + ((kBarLevel[i] - 614) * flash >> 10) * shimmer / unit, 614, 2 * unit);
+        const i32 waver = unit - (unit - sine((state.age * kBarRate[i] + kBarPhase[i]) % 3600)) * 300 / 2048;  // 0.7..1
+        const i32 level = clamp(307 + ((kBarLevel[i] - 307) * flash >> 10) * waver / unit, 307, 2 * unit);
         const i32 x = (static_cast<i32>(i) * 14 - 28) * unit;
         place(frame, node, kCentreX + (x * body >> 10), kCentreY, level * body >> 10, static_cast<u32>(inside), fill_and_stroke);
-        turn(frame, node, rotation(900 * flash >> 10));
     }
-    // The sympathetic body: three waves that swell a fifth and tremble on a note.
+    // The sympathetic body: three S-waves from edge to edge that bend on a
+    // note: each has a calm and a bent outline, cross-faded by the kick.
     for (u32 i = 0; i < kWaves3; ++i) {
-        const u32 node = kFirstWave + i;
-        if (model != kSympathetic) { hide(frame, node); continue; }
-        const i32 grow = unit + (flash * 205 >> 10);
-        const i32 side = (i & 1) ? -1 : 1;
-        const i32 x = ((static_cast<i32>(i) - 1) * 13 * grow) + side * (tremor * flash >> 10) * 2;
-        place(frame, node, kCentreX + (x * body >> 10), kCentreY, grow * body >> 10, static_cast<u32>(inside), stroke);
+        const i32 x = kWaveX[i] * swell;
+        const i32 calm = inside * (unit - flash) >> 10, bent = inside * flash >> 10;
+        if (model != kSympathetic || calm <= 0) hide(frame, kFirstWave + i);
+        else place(frame, kFirstWave + i, kCentreX + x, kCentreY, swell, static_cast<u32>(calm), stroke);
+        if (model != kSympathetic || bent <= 0) hide(frame, kFirstWave + kWaves3 + i);
+        else place(frame, kFirstWave + kWaves3 + i, kCentreX + x, kCentreY, swell, static_cast<u32>(bent), stroke);
     }
     // The chords body: three lines across the body that quiver on a note.
     for (u32 i = 0; i < kChords3; ++i) {
