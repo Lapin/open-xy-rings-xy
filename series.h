@@ -10,7 +10,7 @@
 namespace mi_rings {
 const unsigned kMaxModes = 24;
 const unsigned kModeChoices = 4;
-const unsigned kModeCounts[kModeChoices] = {2, 6, 12, 24};  // the Modes enum: bare, lean, full, lush
+const unsigned kModeCounts[kModeChoices] = {1, 3, 8, 24};  // the Modes enum: bare, lean, full, lush
 
 // Interpolated read of a 257-entry table over a normalized Q31 control.
 inline opxy::i32 lookup(const opxy::i32* table, opxy::i32 control) {
