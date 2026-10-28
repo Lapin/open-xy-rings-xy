@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generates panel.svg.fragment: the two-page header block, the Rings-style
 model and modes LED rings with their icons either side, and the nodes the
-display animates: the body circle with its inner rings, meter bars, waves or
-lines, the pluck point and ripples, the four mandalas that turn around the
+display animates: the body circle with its inner rings, the pluck point and
+ripples, the four mandalas that turn around the
 body, the lit LEDs and their halos. Writes mandala.h beside the fragment.
 
 Only forms seen on hardware: rect, circle, path of M/L/Z, text; at most two
@@ -23,9 +23,7 @@ ID = 'mi_rings'
 CX, CY = 240, 130                      # the body's centre
 BODY = 40                              # the body circle's radius
 INNER = [11, 21, 31]                   # the inner rings
-BAR_W, BAR_H, BARS5 = 3, 14, 5          # the string body's meter bars: authored size, count
-WAVE_X, WAVE_CALM, WAVE_BENT = (-13, 0, 13), 3, 7   # the sympathetic body's waves: columns, amplitudes
-CHORD_Y = (-18, 0, 18)                 # the chords body's lines
+PATHS, POINTS = 4, 64                  # mutable outlines: the string, sympathetic and chords bodies' insides
 LED_X = (30, 450)                      # model LEDs left, modes LEDs right
 LED_Y = (82, 114, 146, 178)
 LED_R = 8
@@ -36,16 +34,15 @@ ICON = '#8A8A8A'
 PARKED = 'transform="matrix(1 0 0 1 640 320)"'
 
 # Node map, shared with display.h; the mandalas' nodes are laid out below and
-# written to mandala.h for the display.
-BODY_NODE = 8
-FIRST_INNER = 9                        # 9..11
-CENTRE = 12
-STRIKE = 13
-FIRST_RIPPLE, RIPPLES = 14, 3          # 14..16
-FIRST_BAR = 17                         # 17..21: the string body's meter bars
-FIRST_WAVE = 22                        # 22..24: the sympathetic body's calm waves, 25..27 the bent ones
-FIRST_CHORD = 28                       # 28..30: the chords body's lines
-FIRST_MANDALA = 31
+# written to mandala.h for the display. The mutable outlines come first, as the
+# contract requires, then the header's eight bars.
+HEADER = PATHS                         # 4..11
+BODY_NODE = HEADER + 8                 # 12
+FIRST_INNER = BODY_NODE + 1            # 13..15
+CENTRE = FIRST_INNER + 3               # 16
+STRIKE = CENTRE + 1                    # 17
+FIRST_RIPPLE, RIPPLES = STRIKE + 1, 3  # 18..20
+FIRST_MANDALA = FIRST_RIPPLE + RIPPLES  # 21
 REACH = 88                             # a mandala's outermost pixel from the centre
 TOLERANCE = 0.3                        # px: the outlines simplified to what the screen can show
 
@@ -332,8 +329,12 @@ out = [f'<g id="{ID}_panel">',
        '<!-- Two-page header in the proven hurdygurdy form: a black rect covers the stock header,',
        '     then the bar steps and both pages\' titles and values at their resting sizes. -->',
        '<rect x="0" y="0" width="480" height="220" fill="#000000"/>']
+out.append('<!-- The mutable outlines: thin ribbons of exactly POINTS distinct points, reshaped every frame. -->')
+for i in range(PATHS):
+    flat = [(-31 + 2 * k, -0.4) for k in range(POINTS // 2)]
+    out.append(node(i, flat + [(x, 0.4) for x, y in flat[::-1]], width=0.5, decimals=1))
 for i, colour in enumerate(BARS):
-    out.append(f'<path id="{ID}_node_{i}" transform="matrix(1 0 0 1 {i * 60} 0)" d="M0,0 L60,0 L60,20 L0,20 Z" '
+    out.append(f'<path id="{ID}_node_{HEADER + i}" transform="matrix(1 0 0 1 {i * 60} 0)" d="M0,0 L60,0 L60,20 L0,20 Z" '
                f'fill="{colour}" stroke="{colour}" stroke-width="0.5"/>')
 titles = ['struct', 'bright', 'damping', 'position', 'model', 'strike', 'damping', 'modes']
 values = ['50', '50', '50', '50', 'modal', '0', '50', 'lean']
@@ -363,24 +364,6 @@ out.append(f'<circle id="{ID}_node_{CENTRE}" {PARKED} cx="0" cy="0" r="2" fill="
 out.append(f'<circle id="{ID}_node_{STRIKE}" {PARKED} cx="0" cy="0" r="2.5" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1"/>')
 for i in range(RIPPLES):
     out.append(circle_node(FIRST_RIPPLE + i, 40))
-for i in range(BARS5):
-    out.append(poly([(-BAR_W / 2, -BAR_H / 2), (BAR_W / 2, -BAR_H / 2), (BAR_W / 2, BAR_H / 2), (-BAR_W / 2, BAR_H / 2)], '#808080', 0.5,
-                    fill='#808080', attrs=f' id="{ID}_node_{FIRST_BAR + i}" {PARKED}'))
-
-
-def wave_ribbon(x0, amplitude):
-    """An S of a turn and a half from the body's edge to its edge at column x0, as a thin ribbon."""
-    half = math.sqrt(BODY * BODY - x0 * x0) - 0.6
-    pts = [(amplitude * math.sin(1.5 * math.pi * (y + half) / half), y) for y in (-half + 2 * half * i / 24 for i in range(25))]
-    return pts + [(x + 0.8, y) for x, y in pts[::-1]]
-
-
-for k, amplitude in enumerate((WAVE_CALM, WAVE_BENT)):
-    for i, x0 in enumerate(WAVE_X):
-        out.append(node(FIRST_WAVE + 3 * k + i, wave_ribbon(x0, amplitude), width=0.5, decimals=1))
-for i, y in enumerate(CHORD_Y):
-    half = math.sqrt(BODY * BODY - y * y) - 1
-    out.append(node(FIRST_CHORD + i, [(-half, -0.4), (half, -0.4), (half, 0.4), (-half, 0.4)], width=0.5))
 out.append('<!-- The mandalas, one per model, lifted from Mutable\'s panels: every piece authored upright')
 out.append('     at the centre and turned by the display, which shows one model\'s set at a time. -->')
 table = []          # per model: (fold, body scale Q10, [(first, count, layer, fill)])
@@ -441,8 +424,8 @@ assert NODES <= 256, NODES
 
 header = ['// Generated by tools/gen_panel.py from tools/motif.json: the mandalas\' nodes.',
           '#pragma once', '#include <opxy/types.hpp>', '', 'namespace mi_rings {',
-          f'const opxy::u32 kFirstBar = {FIRST_BAR}, kBars = {BARS5}, kFirstWave = {FIRST_WAVE}, kWaves3 = {len(WAVE_X)}, kFirstChord = {FIRST_CHORD}, kChords3 = {len(CHORD_Y)};',
-          f'const opxy::i32 kWaveX[{len(WAVE_X)}] = {{{", ".join(str(x) for x in WAVE_X)}}}, kChordY[{len(CHORD_Y)}] = {{{", ".join(str(y) for y in CHORD_Y)}}};',
+          f'const opxy::u32 kPaths = {PATHS}, kPathPoints = {POINTS}, kHeaderNode = {HEADER}, kBodyNode = {BODY_NODE}, kFirstInner = {FIRST_INNER};',
+          f'const opxy::u32 kCentreNode = {CENTRE}, kStrikeNode = {STRIKE}, kFirstRipple = {FIRST_RIPPLE}, kRipples = {RIPPLES};',
           f'const opxy::u32 kFirstMandala = {FIRST_MANDALA}, kModelLed = {MODEL_LED}, kModesLed = {MODES_LED}, kHaloNode = {HALO}, kNodes = {NODES};',
           'const opxy::u32 kMandalaGroups = %d;' % max(len(t[2]) for t in table),
           'struct MandalaGroup { opxy::u16 first; opxy::u8 count, layer, fill; };',
@@ -456,6 +439,8 @@ header += ['};', '}', '']
 open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'mandala.h'), 'w').write('\n'.join(header))
 definition = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'definition.json')
 text = open(definition).read()
+text = re.sub(r'"paths": \d+', f'"paths": {PATHS}', text, count=1)
+text = re.sub(r'"points": \d+', f'"points": {POINTS}', text, count=1)
 open(definition, 'w').write(re.sub(r'"nodes": \d+', f'"nodes": {NODES}', text, count=1))
 
 out.append('<!-- The lit LED of each column, and the halo that marks a change. -->')

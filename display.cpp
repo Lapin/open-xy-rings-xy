@@ -4,10 +4,12 @@
 // petals that turns slowly, kicks on every note and eases back as the note
 // fades. Structure adds petals, Bright lights the body's inside,
 // Damping sets how long the kick lasts, Position places the pluck point and the
-// ripples that spread from it. Each model has its own mandala, lifted from
-// Mutable's panels: Rings' Frequency paisleys for the modal body, Elements'
-// Mallet and Flow knobs for the string and sympathetic bodies, Rings' Structure
-// knob for the chords.
+// ripples that spread from it. Each model has its own mandala: Rings'
+// Frequency paisleys for the modal body, a lotus for the string body, circles
+// of leaf veins for the sympathetic, a layered flower for the chords. Inside
+// the body each model has its own life, drawn fresh every frame as mutable
+// outlines: rings for the modal body, a meter for the string body, S-waves
+// that bend for the sympathetic, lines that vibrate for the chords.
 #include "display.h"
 #include "core.h"
 #include "series.h"
@@ -48,6 +50,68 @@ inline u32 choice4(i32 control) {
     return choice > 3 ? 3 : choice;
 }
 
+// The mutable outlines: each is a thin closed ribbon of exactly kPathPoints
+// points, in Q10 pixels about the body's centre, one edge out and the other
+// back a fraction of a pixel away so it encloses area (the OP-XY streaks
+// otherwise). The body's radius is 40 px, so the ends sit at 39.4 px.
+const i32 kEdge = 410;                                            // 0.4 px: the ribbon's half width
+const i32 kRibbon = 819;                                          // 0.8 px between the two edges
+struct Pen { Frame::path_type& path; u32 n; };
+inline void put(Pen& pen, i32 x, i32 y) {
+    if (pen.n < kPathPoints) pen.path.points[pen.n] = {x, y};
+    ++pen.n;
+}
+// The string body's meter: seven bars on a baseline from edge to edge, each
+// `height[i]` above and below it (Q10 px, at least kEdge + a little). Out
+// along the top edge drawing the bars' upper halves, back along the bottom
+// drawing their lower halves: 64 points exactly.
+const u32 kMeterBars = 7;
+const i32 kMeterX[kMeterBars] = {-30, -20, -10, 0, 10, 20, 30};
+const i32 kMeterReach[kMeterBars] = {20, 26, 30, 32, 30, 26, 20};   // px: the tallest bar inside the circle
+inline void meter(Frame::path_type& path, const i32 (&height)[kMeterBars]) {
+    Pen pen = {path, 0};
+    const i32 end = 39 * unit, half = 2 * unit;
+    put(pen, -end, -kEdge);
+    put(pen, -36 * unit, -kEdge);
+    for (u32 i = 0; i < kMeterBars; ++i) {
+        const i32 x = kMeterX[i] * unit;
+        put(pen, x - half, -kEdge); put(pen, x - half, -height[i]); put(pen, x + half, -height[i]); put(pen, x + half, -kEdge);
+    }
+    put(pen, 36 * unit, -kEdge); put(pen, end, -kEdge); put(pen, end, kEdge); put(pen, 36 * unit, kEdge);
+    for (u32 k = kMeterBars; k-- > 0;) {
+        const i32 x = kMeterX[k] * unit;
+        put(pen, x + half, kEdge); put(pen, x + half, height[k]); put(pen, x - half, height[k]); put(pen, x - half, kEdge);
+    }
+    put(pen, -36 * unit, kEdge);
+    put(pen, -end, kEdge);
+}
+// A vertical S-wave of a turn and a half down column x0 (px) from the body's
+// edge to its edge, bent `amplitude` (Q10 px) sideways: 32 points down, 32 back.
+inline void s_wave(Frame::path_type& path, i32 x0, i32 half, i32 amplitude) {
+    Pen pen = {path, 0};
+    const u32 steps = kPathPoints / 2 - 1;
+    i32 xs[kPathPoints / 2];
+    for (u32 i = 0; i <= steps; ++i)
+        xs[i] = x0 * unit + (amplitude * sine(static_cast<i32>(i) * 5400 / static_cast<i32>(steps) % 3600) >> 10);
+    for (u32 i = 0; i <= steps; ++i)
+        put(pen, xs[i], -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)));
+    for (u32 i = steps + 1; i-- > 0;)
+        put(pen, xs[i] + kRibbon, -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)));
+}
+// A string across the body at row y0 (px), from edge to edge, standing in its
+// `mode`th harmonic with the given amplitude (Q10 px): 32 points out, 32 back.
+inline void string_line(Frame::path_type& path, i32 y0, i32 half, i32 mode, i32 amplitude) {
+    Pen pen = {path, 0};
+    const u32 steps = kPathPoints / 2 - 1;
+    i32 ys[kPathPoints / 2];
+    for (u32 i = 0; i <= steps; ++i)
+        ys[i] = y0 * unit + (amplitude * sine(static_cast<i32>(i) * 1800 * mode / static_cast<i32>(steps)) >> 10);
+    for (u32 i = 0; i <= steps; ++i)
+        put(pen, -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)), ys[i]);
+    for (u32 i = steps + 1; i-- > 0;)
+        put(pen, -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)), ys[i] + kRibbon);
+}
+
 // Places a petal at the body's centre, turned by tenths of a degree, or hides it.
 template <class F>
 inline void petal(F& frame, u32 node, i32 tenths, i32 shade, Paint paint = stroke) {
@@ -67,6 +131,7 @@ inline void display_reset(DisplayState& state) {
     state.angle = 0;
     state.model = state.modes = 0xffffffffu;
     state.halo_age[0] = state.halo_age[1] = kHaloLife;
+    state.serial = 1;
     state.header.reset();
 }
 
@@ -81,7 +146,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     opxy::draw::copy(values[4], header_capacity, kModelNames[model]);
     opxy::draw::copy(values[6], header_capacity, kModeNames[modes]);
     const opxy::u8 slots[2][4] = {{0, 1, 2, 3}, {4, 5, 2, 6}};
-    page_header(state.header, input, frame, titles, values, 0, slots);
+    page_header(state.header, input, frame, titles, values, kHeaderNode, slots);
 
     const i32 structure = clamp(input.slots[0], 0, opxy::q31::maximum);
     const i32 brightness = clamp(input.slots[1], 0, opxy::q31::maximum);
@@ -139,45 +204,56 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     place(frame, kBodyNode, kCentreX, kCentreY, swell, static_cast<u32>(clamp(8 + glow, 1, 15)), stroke);
     place(frame, kCentreNode, kCentreX, kCentreY, unit, static_cast<u32>(clamp(9 + glow, 1, 15)), fill_and_stroke);
     const i32 inside = clamp(bright + glow, 1, 15);
-    const i32 tremor = sine((state.age * 30) % 3600);                    // Q10, about 8 Hz
-    const i32 quiver = sine((state.age * 41 + 900) % 3600);
     for (u32 i = 0; i < kInnerRings; ++i) {
         if (model != kModal) { hide(frame, kFirstInner + i); continue; }
         place(frame, kFirstInner + i, kCentreX, kCentreY, swell, static_cast<u32>(inside), stroke);
     }
-    // The string body: five meter bars, short at rest, that leap to a loose
-    // spectrum on a note, each wavering at its own rate, and settle as it fades.
-    // The authored bar is 14 px tall, so scale 0.3 is a tick and 2 a full bar.
-    static const i32 kBarLevel[kBars] = {1500, 2048, 1750, 2048, 1500};   // Q10 scales when struck
-    static const i32 kBarRate[kBars] = {37, 29, 47, 23, 53};
-    static const i32 kBarPhase[kBars] = {0, 700, 1400, 2100, 2800};
-    for (u32 i = 0; i < kBars; ++i) {
-        const u32 node = kFirstBar + i;
-        if (model != kString) { hide(frame, node); continue; }
-        const i32 waver = unit - (unit - sine((state.age * kBarRate[i] + kBarPhase[i]) % 3600)) * 300 / 2048;  // 0.7..1
-        const i32 level = clamp(307 + ((kBarLevel[i] - 307) * flash >> 10) * waver / unit, 307, 2 * unit);
-        const i32 x = (static_cast<i32>(i) * 14 - 28) * unit;
-        place(frame, node, kCentreX + (x * body >> 10), kCentreY, level * body >> 10, static_cast<u32>(inside), fill_and_stroke);
+    // The mutable outlines, drawn fresh every frame for the model and placed at
+    // the body's centre at its swell: the key changes with them so the
+    // renderers reapply them. The modal body uses none; the others' sit flat.
+    state.serial += 1;
+    if (state.serial < 2) state.serial = 2;
+    u32 drawn = 0;
+    if (model == kString) {
+        // The meter: a line at rest, its seven bars rising to a loose spectrum
+        // on a note, each wavering at its own rate, and settling as it fades.
+        static const i32 kLevel[kMeterBars] = {600, 820, 940, 1024, 900, 760, 560};   // Q10 of the bar's reach
+        static const i32 kRate[kMeterBars] = {37, 29, 47, 23, 53, 31, 43};
+        static const i32 kPhase[kMeterBars] = {0, 500, 1000, 1500, 2000, 2500, 3000};
+        i32 height[kMeterBars];
+        for (u32 i = 0; i < kMeterBars; ++i) {
+            const i32 waver = unit - (unit - sine((state.age * kRate[i] + kPhase[i]) % 3600)) * 350 / 2048;  // 0.65..1
+            const i32 level = (kLevel[i] * flash >> 10) * waver >> 10;                                   // Q10
+            height[i] = kEdge + 205 + (kMeterReach[i] * level);                                          // Q10 px
+        }
+        meter(frame.paths[0], height);
+        drawn = 1;
+    } else if (model == kSympathetic) {
+        // Three S-waves from edge to edge, bent a little at rest and more while a note rings.
+        static const i32 kColumn[3] = {-13, 0, 13}, kHalf[3] = {37 * unit + 205, 39 * unit + 410, 37 * unit + 205};
+        const i32 amplitude = 3 * unit + (5 * unit * flash >> 10);
+        for (u32 i = 0; i < 3; ++i) s_wave(frame.paths[i], kColumn[i], kHalf[i], amplitude);
+        drawn = 3;
+    } else if (model == kChords) {
+        // Three strings across the body, standing still at rest and shaking in
+        // their harmonics while a note rings, their ends fixed at the edge.
+        static const i32 kRow[3] = {-18, 0, 18}, kHalf[3] = {35 * unit + 102, 39 * unit + 410, 35 * unit + 102};
+        static const i32 kMode[3] = {2, 3, 1}, kRate[3] = {33, 41, 29};
+        for (u32 i = 0; i < 3; ++i) {
+            const i32 shake = sine((state.age * kRate[i] + static_cast<i32>(i) * 1200) % 3600);
+            const i32 amplitude = ((3 * unit + 205) * flash >> 10) * shake >> 10;
+            string_line(frame.paths[i], kRow[i], kHalf[i], kMode[i], amplitude);
+        }
+        drawn = 3;
     }
-    // The sympathetic body: three S-waves from edge to edge that bend on a
-    // note: each has a calm and a bent outline, cross-faded by the kick.
-    for (u32 i = 0; i < kWaves3; ++i) {
-        const i32 x = kWaveX[i] * swell;
-        const i32 calm = inside * (unit - flash) >> 10, bent = inside * flash >> 10;
-        if (model != kSympathetic || calm <= 0) hide(frame, kFirstWave + i);
-        else place(frame, kFirstWave + i, kCentreX + x, kCentreY, swell, static_cast<u32>(calm), stroke);
-        if (model != kSympathetic || bent <= 0) hide(frame, kFirstWave + kWaves3 + i);
-        else place(frame, kFirstWave + kWaves3 + i, kCentreX + x, kCentreY, swell, static_cast<u32>(bent), stroke);
-    }
-    // The chords body: three lines across the body that quiver on a note.
-    for (u32 i = 0; i < kChords3; ++i) {
-        const u32 node = kFirstChord + i;
-        if (model != kChords) { hide(frame, node); continue; }
-        const i32 side = (i & 1) ? -1 : 1;
-        const i32 wave = (i == 1 ? quiver : tremor) * flash >> 10;      // Q10, fading with the kick
-        const i32 y = kChordY[i] * swell + side * wave * 3 / 2;
-        place(frame, node, kCentreX, kCentreY + y, swell, static_cast<u32>(inside), stroke);
-        turn(frame, node, rotation(side * wave * 15 >> 10));
+    for (u32 i = 0; i < kPaths; ++i) {
+        if (i < drawn) {
+            frame.paths[i].key = state.serial;
+            place(frame, i, kCentreX, kCentreY, swell, static_cast<u32>(inside), stroke);
+        } else {
+            if (frame.paths[i].key != 1) { string_line(frame.paths[i], 0, 39 * unit, 1, 0); frame.paths[i].key = 1; }
+            hide(frame, i);
+        }
     }
 
     // The pluck point: Position runs along the body's diameter from the left

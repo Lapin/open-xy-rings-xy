@@ -33,12 +33,13 @@ The screen shows both pages in the shared header. Either side sit the Rings
 panel's LEDs: the four models on the left (rings, bars, waves, a chord stack),
 the four Modes steps on the right (one to four dots), the chosen one lit and
 haloed for a second when it changes. In the middle is the body: a circle with
-a dot at its centre, lit inside by Bright: three rings for the modal body,
-five dashes for the string body that flip up into the bars of a spectrum on
-a note, three waves for the sympathetic body that swell and tremble, three
-lines across the chords body that quiver. Around it turns a mandala, a
-different one for each model, lifted from Mutable's panel files into
-straight-line outlines: the modal body has the Rings panel's Frequency knob,
+a dot at its centre, lit inside by Bright: three rings for the modal body; a
+line across the string body whose seven bars rise, up and down, into a loose
+spectrum on a note and settle as it fades; three S-waves down the sympathetic
+body that bend more while a note rings; three strings across the chords body
+that shake in their harmonics, their ends fixed. Those three are the display's
+mutable outlines, reshaped every frame. Around it turns a mandala, a
+different one for each model: the modal body has the Rings panel's Frequency knob,
 twelve paisleys under two wavy rings; the string body has a lotus drawn in
 code, eight petals with smaller petals and eyes inside, eight more between
 them with beads and dots, in two rings; the sympathetic body has a drawn

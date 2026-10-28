@@ -156,11 +156,11 @@
     "sharedBytes": 0,
     "outputPeakQ31": 1073741824,
     "display": {
-      "stateBytes": 92,
+      "stateBytes": 96,
       "stateAlignment": 4,
-      "paths": 0,
-      "points": 0,
-      "nodes": 256,
+      "paths": 4,
+      "points": 64,
+      "nodes": 246,
       "texts": 16,
       "palette": 16
     }
