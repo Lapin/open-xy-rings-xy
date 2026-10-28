@@ -52,8 +52,8 @@ sit inside the denser ones. The mandala turns slowly at rest, is kicked by
 every note and eases back over Damping's time; Structure brings its pieces in
 from the smallest out, and every note lights them in that order, a ripple from
 the centre out, each recent note with its own. Position shapes the inside:
-more rings on the modal body, more bars on the string body from the centre
-out, thicker strings on the chords body. Strike exaggerates every inside's
+more rings on the modal body, more bars on the string body and more strings
+on the chords body, from the centre out. Strike exaggerates every inside's
 motion. Reduced motion holds the mandala still.
 
 ## Implementation
