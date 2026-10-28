@@ -26,7 +26,7 @@ Two pages of four encoders; a press of any encoder switches pages.
 | Damping | The decay and its tone: the modal body's partials from dull knocks to ringing bells, a string's treble loss per pass. A string always rings for about a second at 0, so the OP-XY's envelope is what cuts a note short; 95 and above sustains it for ever |
 | Position | The strike or pluck point: 0 rings every partial, 100 the middle. On a string it also sets the pickup's comb and the pluck's length |
 | Model (page 2, with Struct) | mdal, strn, symp, chrd: modal, string, sympathetic strings, chords |
-| Strike (page 2, with Bright) | Modal only: 0 is a single pulse, as Rings strikes; higher turns it into a noise burst of up to 256 samples at the same energy |
+| Strike (page 2, with Bright) | The exciter's grain: on the modal body 0 is Rings' single pulse and higher a noise burst of up to 46 ms at the same energy; on the strings it drags the pluck out to a scrape up to eight times as long |
 | Modes (page 2, with Position) | Modal only: how many partials ring: bare 6, lean 12, full 18, lush 24, as Rings' polyphony button trades voices for partials; fewer cost less CPU |
 
 The screen shows both pages in the shared header. Either side sit the Rings

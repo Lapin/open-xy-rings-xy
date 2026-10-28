@@ -80,9 +80,18 @@ inline void tune_string(String& s, Stretch* stretch, i32 structure, i32 brightne
     // Dispersion from Structure: none around a quarter, bridge curving below, stretch above.
     i32 dispersion = 0;
     const i32 kLow = 515396076, kHigh = 558345748;             // 0.24, 0.26
-    if (structure < kLow) dispersion = multiply(structure - kLow, 2147483647) * 4 + multiply(structure - kLow, 356482286);  // (s - 0.24) 4.166
-    else if (structure > kHigh) dispersion = structure - kHigh + multiply(structure - kHigh, 754599288);                    // (s - 0.26) 1.35135
-    dispersion = clamp(dispersion, -kOne, kOne);
+    // Both slopes reach past 1 at the ends of the control, so the last step is
+    // added with saturation: a plain add wrapped at Structure 100 on the device.
+    if (structure < kLow) {
+        const i32 below = structure - kLow;                                                    // -0.24..0
+        const i32 most = multiply(below, 2147483647) * 4;                                     // 4 (s - 0.24), above -0.96
+        const i32 rest = multiply(below, 356482286);                                          // 0.166 (s - 0.24)
+        dispersion = most < -kOne - rest ? -kOne : most + rest;                              // (s - 0.24) 4.166
+    } else if (structure > kHigh) {
+        const i32 above = structure - kHigh;                                                   // 0..0.74
+        const i32 rest = multiply(above, 754599288);                                          // 0.35135 (s - 0.26)
+        dispersion = above > kOne - rest ? kOne : above + rest;                               // (s - 0.26) 1.35135
+    }
     if (!stretch) dispersion = 0;
     const i32 magnitude = dispersion < 0 ? -dispersion : dispersion;
     s.stretch_point = dispersion > 0 ? multiply(bend(dispersion), 1020054733) : 0;          // d (2 - d) 0.475
@@ -213,17 +222,22 @@ inline void render_string(String& s, Stretch* stretch, u32& seed, const i32* inp
 
 // --- The plucker and the sympathetic strings' notes ------------------------
 // Arm the plucker for a note: Rings' Plucker::Trigger.
-inline void pluck(Voice& voice, i32 brightness, u32 increment, i32 position) {
+inline void pluck(Voice& voice, i32 brightness, u32 increment, i32 position, i32 strike) {
     Plucker& p = voice.plucker;
     const i32 ratio = 107374182 + multiply(position, 1932735283);        // 0.05 + 0.9 p
     i32 period = multiply(loop_delay(increment), ratio);                 // Q16 samples
-    p.remaining = static_cast<u32>(period >> 16);
+    // Strike drags the pluck out: the noise burst lasts up to eight times the
+    // pluck's own length, a scrape rather than a pick, at the same energy.
+    static const i32 kScrapeGain[8] = {1 << 28, 189812531, 154990080, 1 << 27, 120054150, 109594120, 101468540, 94906266};  // 2^28 / sqrt(n)
+    const u32 scrape = 1 + (static_cast<u32>(strike < 0 ? 0 : strike) >> 28);              // 1..8
+    p.remaining = static_cast<u32>(period >> 16) * scrape;
     while (period >= 255 << 16) period >>= 1;
     p.period = period;
     p.gain = multiply(kOne - position, 1717986918);                      // 0.8 (1 - p)
     // A short burst carries little energy: lift it towards the half-period
     // burst's loudness, up to 2.8 times, so a pluck at the bridge still speaks.
-    p.burst = ratio >= (kOne >> 1) ? 1 << 28 : (1 << 28) + (((kOne >> 1) - ratio) >> 1);  // Q28
+    const i32 lift = ratio >= (kOne >> 1) ? 1 << 28 : (1 << 28) + (((kOne >> 1) - ratio) >> 1);  // Q28
+    p.burst = scrape == 1 ? lift : multiply(lift, kScrapeGain[scrape - 1] << 3);                 // Q28, no 64-bit helpers
     // Its low-pass: eight times the strike filter's cutoff, at Q 1.
     const i32 colour = bend(brightness);
     i32 cutoff = shift(exp2_scale(static_cast<i32>(increment >> 1), colour - (1 << 30)), 3);

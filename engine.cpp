@@ -31,8 +31,8 @@ const i32 kCutoffLimit = 515396075;     // 0.24 cycles per sample, Q31: the stri
 const i32 kHeavy = 1 << 17;             // a loss per sample from 2^-14: applied every sample
 const i32 kIdle = 1 << 4;               // a mode state below this, 2^-20 of unity, is silent
 // 2^(-steps/2): a noise burst of 2^steps samples keeps the pulse's energy.
-const i32 kBurstGain[9] = {2147483647, 1518500250, 1073741824, 759250125, 536870912,
-                           379625062, 268435456, 189812531, 134217728};
+const i32 kBurstGain[12] = {2147483647, 1518500250, 1073741824, 759250125, 536870912, 379625062,
+                            268435456, 189812531, 134217728, 94906266, 67108864, 47453133};
 
 inline i32 clamp(i32 value, i32 low, i32 high) { return value < low ? low : value > high ? high : value; }
 
@@ -177,7 +177,7 @@ void strike(Voice& voice, i32 brightness, u32 pitch, i32 strike_control) {
     const i32 c2 = multiply(colour, colour);
     const i32 base = exp2_scale(kPiOver4 >> 7, c2 >> 2);  // Q24
     i32 pulse = base + multiply(base, poly) * 2;
-    const u32 steps = ((static_cast<u32>(strike_control < 0 ? 0 : strike_control) >> 16) * 8 + (1u << 14)) >> 15;
+    const u32 steps = ((static_cast<u32>(strike_control < 0 ? 0 : strike_control) >> 16) * 11 + (1u << 14)) >> 15;  // 0..11: up to 2048 samples, 46 ms
     e.noise = steps > 0;
     e.burst = 1u << steps;
     e.pulse = multiply(pulse, kBurstGain[steps]);
@@ -327,7 +327,7 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
                        model != voice.model;
     if (model != kModal) {
         if (voice.pending) {
-            pluck(voice, brightness, increment, position);
+            pluck(voice, brightness, increment, position, parameters[5]);
             voice.ringing = 1;
             voice.pending = 0;
         }
