@@ -41,8 +41,9 @@ twelve paisleys under two wavy rings; the string body has a lotus drawn in
 code, eight petals with smaller petals and eyes inside, eight more between
 them with beads and dots, in two rings; the sympathetic body has a drawn
 ring of twelve interlocking circles, then small circles with triangles and
-dots between them, in rings; the chords body has Rings' Structure knob, four nested
-triangles under beaded arcs, with flowers between. The body circle shrinks to
+dots between them, in rings; the chords body has a drawn hexagram of two
+triangles about the body, triads as triangles, with a smaller triangle in
+each point, eyes in the gaps, an outer ring and dots. The body circle shrinks to
 sit inside the denser ones. The mandala turns slowly at rest, is kicked by
 every note and eases back over Damping's time; Structure brings its pieces in
 from the smallest out, and every note lights them in that order, a ripple from
@@ -88,7 +89,7 @@ The two-page header, the LEDs, the body and the mandala are drawn by
 centre, one model's set shown at a time. `tools/extract_motif.py` lifts the
 motifs from Mutable's `rings.ai` (converted with
 `pdftocairo -svg`) into `tools/motif.json`, which `tools/gen_panel.py` scales
-into `panel.svg.fragment`, draws the string and sympathetic sets itself, and lays
+into `panel.svg.fragment`, draws the other three sets itself, and lays
 every set out in `mandala.h` for the display.
 `tools/gen_panel.py` generates `panel.svg.fragment`.
 `tools/gen_tables.py` generates `tables.h` (sine, Rings' stiffness and
@@ -136,6 +137,6 @@ Keep firmware and stock content outside every checkout.
 The code in this folder is covered by [LICENSE](LICENSE). The partial series,
 string loop, decay rules and exciters follow Mutable Instruments Rings,
 Copyright 2015 Emilie Gillet, MIT licence; no Rings source is included. The
-screen's traced mandalas come from the Rings panel artwork in
+screen's modal mandala is traced from the Rings panel artwork in
 Mutable's hardware files, CC BY-SA 3.0, Emilie Gillet; `tools/motif.json`
 carries that licence.

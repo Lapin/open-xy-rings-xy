@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lifts one motif per model from Mutable Instruments' panel artwork
+"""Lifts the modal body's motif from Mutable Instruments' panel artwork
 (hardware_design/panel/<module>.ai in github.com/pichenettes/eurorack,
 CC BY-SA 3.0) into motif.json: polylines in panel points about the knob's
 centre, each motif upright at angle 0, repeated `fold` times by the display.
@@ -8,9 +8,7 @@ centre, each motif upright at angle 0, repeated `fold` times by the display.
     python3 tools/extract_motif.py <folder with rings.svg> > tools/motif.json
 
   modal        Rings, Frequency knob: a paisley, the wavy rings redrawn by gen_panel
-  (the string and sympathetic bodies' mandalas are drawn by gen_panel.py, not traced)
-  chords       Rings, Structure knob: nested rounded triangles under a beaded arc,
-               with a flower, leaves and drops
+  (the string, sympathetic and chords bodies' mandalas are drawn by gen_panel.py, not traced)
 """
 import json, math, os, re, sys
 import panel_paths as pp
@@ -18,7 +16,7 @@ import panel_paths as pp
 folder = sys.argv[1]
 svgs = {name: open(os.path.join(folder, name + '.svg')).read() for name in ('rings',)}
 paths = {name: [m.group(2) for m in re.finditer(r'<path([^>]*) d="([^"]*)"', svg)] for name, svg in svgs.items()}
-CENTRES = {'frequency': (53.83, 94.62), 'structure': (147.06, 94.44)}
+CENTRES = {'frequency': (53.83, 94.62)}
 
 
 def piece(panel, knob, index, sub, turn=0.0, tolerance=0.05):
@@ -45,26 +43,13 @@ def group(name, points=None, circle_of=None, fill=False, layer=0):
 
 T = 10.0  # the paisley at 350 degrees, turned to upright
 motif = {
-    'source': 'Mutable Instruments panel artwork: Rings (Frequency, Structure), CC BY-SA 3.0',
+    'source': 'Mutable Instruments panel artwork: Rings (Frequency), CC BY-SA 3.0',
     'units': 'panel points about the knob centre; y down; each motif upright at angle 0',
     'modal': {'fold': 12, 'groups': [
         group('pupil', circle_of=piece('rings', 'frequency', 114, 0, T), fill=True, layer=0),
         group('eye', circle_of=piece('rings', 'frequency', 94, 1, T), layer=1),
         group('inner', piece('rings', 'frequency', 60, 10, T, 0.012), layer=3),
         group('outline', piece('rings', 'frequency', 60, 11, T, 0.03), layer=4),
-    ]},
-    'chords': {'fold': 4, 'groups': [
-        group('triangle_core', piece('rings', 'structure', 192, 1), layer=0),
-        group('triangle_mid', piece('rings', 'structure', 140, 1), layer=1),
-        group('triangle', piece('rings', 'structure', 116, 136), layer=2),
-        group('flower_dot', circle_of=piece('rings', 'structure', 196, 0), fill=True, layer=0),
-        group('flower_ring', circle_of=piece('rings', 'structure', 148, 1), layer=1),
-        group('flower', piece('rings', 'structure', 116, 124), layer=2),
-        group('drop_left', piece('rings', 'structure', 116, 68, 0, 0.015), layer=3),
-        group('drop_right', piece('rings', 'structure', 116, 103, 0, 0.015), layer=3),
-        group('leaf_left', piece('rings', 'structure', 116, 113, 0, 0.015), layer=4),
-        group('leaf_right', piece('rings', 'structure', 116, 115, 0, 0.015), layer=4),
-        group('arc', piece('rings', 'structure', 116, 130, 0, 0.04), layer=5),
     ]},
 }
 json.dump(motif, sys.stdout, separators=(',', ':'))

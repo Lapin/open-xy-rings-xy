@@ -45,8 +45,8 @@ FIRST_MANDALA = 21
 REACH = 88                             # a mandala's outermost pixel from the centre
 TOLERANCE = 0.3                        # px: the outlines simplified to what the screen can show
 
-# The motifs lifted from Mutable's panels (tools/extract_motif.py) for the
-# modal and chords bodies; the string and sympathetic bodies' are drawn here. The
+# The modal body's motif is lifted from Mutable's Rings panel
+# (tools/extract_motif.py); the other three bodies' mandalas are drawn here. The
 # paisley is flipped so its tip points outwards, scaled, and slid out to span
 # PAISLEY_R, with its eye and pupil as circles and a drawn drop, under two wavy
 # rings redrawn with twelve waves so every tip sits in a notch. The traced
@@ -149,6 +149,24 @@ def drawn_sympathetic():
               ('small', ('circle', 0, -76, 3), False, 3, fold),
               ('triangle', ('path', triangle(73, 85, 8, half)), False, 4, fold),
               ('ring_outer', ('path', circle_path(87)), False, 5, 1)]
+    return fold, pieces, 1.0
+
+
+def drawn_chords():
+    """The chords body's mandala, drawn: a hexagram of two triangles about the
+    body, triads as triangles, with a smaller triangle nested in each of its
+    six points, an eye in each gap between them, an outer ring and dots."""
+    fold = 6
+    gap = 360 / fold / 2
+    def star(radius, turn):
+        return [turned(0, -radius, turn + k * 120) for k in range(3)]
+    pieces = [('dot', ('circle', *turned(0, -66, gap), 2), True, 0, fold),
+              ('eye', ('circle', *turned(0, -66, gap), 6), False, 1, fold),
+              ('triad_up', ('path', star(84, 0)), False, 2, 1),
+              ('triad_down', ('path', star(84, 60)), False, 3, 1),
+              ('point', ('path', triangle(57, 77, 5.5, 0)), False, 4, fold),
+              ('ring_outer', ('path', circle_path(87)), False, 5, 1),
+              ('bead', ('circle', *turned(0, -79.5, gap), 2.5), False, 6, fold)]
     return fold, pieces, 1.0
 
 
@@ -314,6 +332,8 @@ for model in MODELS:
         fold, pieces, body = drawn_lotus()
     elif model == 'sympathetic':
         fold, pieces, body = drawn_sympathetic()
+    elif model == 'chords':
+        fold, pieces, body = drawn_chords()
     else:
         low, high = reach(spec['groups'] + spec.get('single', []))
         k = REACH / high
