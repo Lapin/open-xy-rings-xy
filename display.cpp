@@ -327,8 +327,9 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
             const i32 step = group.count > 1 ? 3600 / static_cast<i32>(group.count) : 0;
             for (u32 i = 0; i < group.count; ++i) {
                 if (m != model) { hide(frame, group.first + i); continue; }
-                petal(frame, group.first + i, state.angle + static_cast<i32>(i) * step, layer[group.layer],
-                      group.fill ? fill_and_stroke : stroke);
+                const i32 turned = (group.fill & 2) ? -state.angle : state.angle;   // some pieces turn the other way
+                petal(frame, group.first + i, turned + static_cast<i32>(i) * step, layer[group.layer],
+                      (group.fill & 1) ? fill_and_stroke : stroke);
             }
         }
     }

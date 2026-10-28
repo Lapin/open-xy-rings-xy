@@ -43,8 +43,9 @@ different one for each model: the modal body has the Rings panel's Frequency kno
 twelve paisleys under two wavy rings; the string body has a lotus drawn in
 code, eight petals with smaller petals and eyes inside, eight more between
 them with beads and dots, in two rings; the sympathetic body has a drawn
-ring of twelve interlocking circles, then small circles with triangles and
-dots between them, in rings; the chords body is a drawn flower: three rings of lens petals,
+ring of twelve circles with leaf veins inside, then small circles with
+triangles between them and an outer ring of dashes that turns the other
+way; the chords body is a drawn flower: three rings of lens petals,
 each turned half a step from the last, the innermost raised towards the
 big ones' tips, the second veined under pointed windows with rungs, rings
 between, a ring and a fringe of rounded fingers. The body circle shrinks to
