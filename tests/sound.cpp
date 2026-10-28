@@ -57,6 +57,14 @@ struct Note {
 
 int main() {
     const double modes12 = 0.375;
+    {   // The exponent helper floors at every scale: 2^(-7.2) from a Q31 loss of
+        // 0.9 read as Q28, where -x + 2^28 overflows a 32-bit int on the device.
+        const opxy::i32 kOne = 2147483647;
+        const opxy::i32 lf = control(0.9);
+        const double expected = std::pow(2.0, -7.2) * 2147483648.0;
+        const double got = mi_rings::exp2_scale(kOne, -lf);
+        check(std::fabs(got - expected) < expected * 0.01, "exp2_scale wrong for a large negative exponent");
+    }
     {   // A default note: a clear strike that decays over a second.
         Note note(440, 0.25, 0.5, 0.6, 0, modes12, 0);
         const double early = note.render(4);          // 6 ms

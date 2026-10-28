@@ -79,7 +79,7 @@
     {
       "id": "modes",
       "label": "Modes",
-      "control": 2,
+      "control": 3,
       "default": 0.375,
       "mapping": {
         "kind": "enum",

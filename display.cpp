@@ -180,7 +180,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 damping = clamp(input.slots[2], 0, opxy::q31::maximum);
     const i32 position = clamp(input.slots[3], 0, opxy::q31::maximum);
     const i32 strike = clamp(input.slots[5], 0, opxy::q31::maximum);
-    const i32 boost = unit + (strike >> 21);                             // Q10, 1..2: Strike exaggerates the insides' motion
+    const i32 boost = unit + (strike >> 22);                             // Q10, 1..1.5: Strike exaggerates the insides' motion
 
     // Time: a note resets the kick and starts a light wave; a changed choice lights a halo.
     const i32 elapsed = clamp(input.elapsed, 0, kExpired);
@@ -248,7 +248,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         // on a note, each wavering at its own rate, and settling as it fades.
         // Position brings the bars in from the centre: one at 0, all seven at full.
         static const i32 kLevel[kMeterBars] = {600, 820, 940, 1024, 900, 760, 560};   // Q10 of the bar's reach
-        static const i32 kRate[kMeterBars] = {37, 29, 47, 23, 53, 31, 43};
+        static const i32 kRate[kMeterBars] = {12, 10, 16, 8, 18, 11, 14};     // tenths per Q10 second: 2..5 Hz, within the screen's rate
         static const i32 kPhase[kMeterBars] = {0, 500, 1000, 1500, 2000, 2500, 3000};
         i32 height[kMeterBars];
         for (u32 i = 0; i < kMeterBars; ++i) {
@@ -273,7 +273,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         static const i32 kRow[3] = {9, 18, 27};
         static const i32 kEnd[3] = {38 * unit + 993, 35 * unit + 737, 29 * unit + 522};   // sqrt(40^2 - row^2)
         static const i32 kTheta[3] = {130, 267, 425};                                     // asin(row / 40), tenths
-        static const i32 kMode[7] = {3, 2, 1, 1, 3, 2, 2}, kRate[7] = {41, 33, 29, 37, 31, 43, 27};
+        static const i32 kMode[7] = {3, 2, 1, 1, 3, 2, 2}, kRate[7] = {14, 11, 10, 12, 10, 15, 9};   // 2.5..4 Hz
         i32 amplitude[7];
         for (u32 i = 0; i < 7; ++i) {
             const i32 shake = sine((state.age * kRate[i] + static_cast<i32>(i) * 700) % 3600);

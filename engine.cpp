@@ -74,7 +74,9 @@ inline i32 divide(i32 a, Reciprocal den, int scale) { return shift(multiply(a, d
 
 // value * 2^(x), x in Q28, saturating.
 inline i32 exp2_scale(i32 value, i32 x) {
-    const i32 n = x >= 0 ? x >> 28 : -((-x + (1 << 28) - 1) >> 28);
+    // floor(x / 2^28) without overflow: -x + 2^28 overflows for x below
+    // -(2^31 - 2^28), which Damping's loss exponent reaches above 0.646.
+    const i32 n = x >= 0 ? x >> 28 : -(((-(x + 1)) >> 28) + 1);
     const u32 fraction = static_cast<u32>(x - (n << 28));          // Q28, below 1
     const u32 index = fraction >> 22;
     const i32 within = static_cast<i32>((fraction & 0x3fffffu) << 9);
