@@ -257,7 +257,9 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
         i32 bright = brightness, damp = damping, pos = position;
         bool retune = dirty;
         if (n == 0) {
-            s.increment = s.target = increment;
+            // Chords tune the main string an octave below the note, as Rings'
+            // chord tables do; the sympathetic model leaves it on the note.
+            s.increment = s.target = offsets[0] ? static_cast<u32>(exp2_scale(static_cast<i32>(increment >> 1), offsets[0])) << 1 : increment;
         } else {
             // Sympathetic strings glide to their notes, duller and well damped,
             // their pickup wandering with a slow LFO.
