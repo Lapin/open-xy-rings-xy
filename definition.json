@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "id": "mi_rings",
+  "name": "MI Rings",
+  "press": "page",
+  "parameters": [
+    {
+      "id": "structure",
+      "label": "Struct",
+      "default": 0.25,
+      "mapping": {
+        "kind": "linear",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "display": "percent"
+    },
+    {
+      "id": "bright",
+      "label": "Bright",
+      "default": 0.5,
+      "mapping": {
+        "kind": "linear",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "display": "percent"
+    },
+    {
+      "id": "damping",
+      "label": "Damping",
+      "default": 0.6,
+      "mapping": {
+        "kind": "linear",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "display": "percent"
+    },
+    {
+      "id": "position",
+      "label": "Position",
+      "default": 0,
+      "mapping": {
+        "kind": "linear",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "display": "percent"
+    },
+    {
+      "id": "modes",
+      "label": "Modes",
+      "control": 0,
+      "default": 0.5952380952380952,
+      "mapping": {
+        "kind": "enum",
+        "labels": [
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20",
+          "21",
+          "22",
+          "23",
+          "24"
+        ]
+      },
+      "display": "enum"
+    },
+    {
+      "id": "strike",
+      "label": "Strike",
+      "control": 1,
+      "default": 0,
+      "mapping": {
+        "kind": "linear",
+        "minimum": 0,
+        "maximum": 1
+      },
+      "display": "percent"
+    }
+  ],
+  "presets": {
+    "Harmonic": {
+      "structure": 0.25,
+      "bright": 0.5,
+      "damping": 0.6,
+      "position": 0,
+      "modes": 0.5952380952380952,
+      "strike": 0
+    },
+    "Bell": {
+      "structure": 0.75,
+      "bright": 0.6,
+      "damping": 0.75,
+      "position": 0.2,
+      "modes": 0.7857142857142857,
+      "strike": 0
+    },
+    "Brushed": {
+      "structure": 0.3,
+      "bright": 0.4,
+      "damping": 0.5,
+      "position": 0.5,
+      "modes": 0.5952380952380952,
+      "strike": 0.75
+    }
+  },
+  "resources": {
+    "voiceBytes": 1032,
+    "voiceAlignment": 4,
+    "voiceCapacity": 16,
+    "sharedBytes": 0,
+    "outputPeakQ31": 1073741824,
+    "display": {
+      "stateBytes": 36,
+      "stateAlignment": 4,
+      "paths": 2,
+      "points": 64,
+      "nodes": 10,
+      "texts": 16,
+      "palette": 16
+    }
+  }
+}

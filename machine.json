@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "sdk": "1.4",
+  "kind": "synth",
+  "description": "A modal resonator after Mutable Instruments Rings: a struck bank of up to 24 partials that Structure bends from harmonic to bell.",
+  "identity": {
+    "engine": 36,
+    "page": 84
+  },
+  "icon": "M4 24 Q13 4 23 24 T42 24 M4 24 Q13 44 23 24 T42 24",
+  "presets": "presets"
+}
