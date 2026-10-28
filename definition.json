@@ -95,7 +95,7 @@
   ],
   "presets": {
     "Harmonic": {
-      "structure": 0.25,
+      "structure": 0.5,
       "bright": 0.5,
       "damping": 0.6,
       "position": 0.25,
@@ -104,7 +104,7 @@
       "strike": 0
     },
     "Bell": {
-      "structure": 0.75,
+      "structure": 0.85,
       "bright": 0.6,
       "damping": 0.75,
       "position": 0.2,
@@ -113,7 +113,7 @@
       "strike": 0
     },
     "Brushed": {
-      "structure": 0.25,
+      "structure": 0.5,
       "bright": 0.4,
       "damping": 0.5,
       "position": 0.1,
@@ -122,7 +122,7 @@
       "strike": 0.7
     },
     "Pluck": {
-      "structure": 0.3,
+      "structure": 0.5,
       "bright": 0.6,
       "damping": 0.5,
       "position": 0.3,

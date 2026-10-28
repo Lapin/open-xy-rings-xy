@@ -22,7 +22,7 @@ Two pages of four encoders; a press of any encoder switches pages.
 
 | Control | What it does |
 | --- | --- |
-| Struct | Modal: the partial series, 0 compressed, about 25 harmonic, higher a bell. String: dispersion, harmonic at 25, stiff above. Sympathetic: the three strings' notes up the ladder. Chords: which chord |
+| Struct | Modal: the partial series, 0 compressed, 45 to 55 harmonic and in tune, higher a bell. String: dispersion, harmonic at 45 to 55, stiff above. Sympathetic: the three strings' notes up the ladder. Chords: which chord |
 | Bright | The exciter's low-pass, from a sixteenth of the note to sixteen times it, and how fast the highs fade |
 | Damping (both pages) | The decay and its tone: the modal body's partials from dull knocks to ringing bells, a string's treble loss per pass. A string always rings for about a second at 0, so the OP-XY's envelope is what cuts a note short; 95 and above sustains it for ever |
 | Position | The strike or pluck point: 0 rings every partial, 100 the middle. On a string it also sets the pickup's comb and the pluck's length |

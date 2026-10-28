@@ -215,6 +215,17 @@ inline void excite(Voice& voice, i32* input) {
 }
 #include "strings.h"
 
+// Structure for the modal and string bodies, with Rings' harmonic zone (its
+// flat spot at a quarter) moved to the knob's centre: 0..45 compresses up to
+// it, 45..55 rests on it, 55..100 stretches towards a bell.
+inline i32 harmonic_centre(i32 structure) {
+    const i32 s = structure < 0 ? 0 : structure;
+    if (s < 966367641) return multiply(s, 1193046471);                        // 0.25 / 0.45
+    if (s < 1181116006) return 536870912 + multiply(s - 966367641, kTenth);  // 0.25 + 0.1 (s - 0.45)
+    const i32 above = multiply(s - 1181116006, 1765657446) * 2;              // 1.644 (s - 0.55), at most 0.74
+    return above > kOne - 558345748 ? kOne : 558345748 + above;              // 0.26 + above
+}
+
 // The Model enum choice from its Q31 word.
 inline u32 model_choice(i32 control) {
     u32 choice = (static_cast<u32>(control < 0 ? 0 : control) >> 16) * kModels >> 15;
@@ -242,6 +253,7 @@ inline void limit(Voice& voice, const i32* sum, i32* output, i32 pre_gain_extra,
 // the sympathetic models three more strings fed by the main string's bridge.
 inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightness, i32 damping, i32 position,
                            u32 increment, bool dirty, i32* sum) {
+    const i32 stiffness = harmonic_centre(structure);  // the main string's dispersion; the notes keep the raw knob
     const u32 count = model == kString ? 1 : kStrings;
     i32 input[opxy::block_frames];
     i32 bridge[opxy::block_frames];
@@ -282,7 +294,7 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
         const i32 index = static_cast<i32>((n << 31) / count);                                // n / count, Q31
         damp += multiply(index, 2040109466 - damp);                                           // towards 0.95 up the bank
         Stretch* stretch = (n == 0 && model == kString) ? &voice.stretch : 0;
-        if (retune) tune_string(s, stretch, structure, bright, damp, pos);
+        if (retune) tune_string(s, stretch, stiffness, bright, damp, pos);
         render_string(s, stretch, voice.seed, n == 0 ? input : bridge, sum, n == 0 ? bridge : 0);
         if (n == 0 && count > 1) {
             const i32 feed = 107374182;                                                        // 0.2 / 4
@@ -349,7 +361,7 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
         voice.pending = 0;
     }
     if (dirty) {
-        tune(voice, structure, brightness, damping, position, mode_count(static_cast<i32>(modes_control)), increment);
+        tune(voice, harmonic_centre(structure), brightness, damping, position, mode_count(static_cast<i32>(modes_control)), increment);
         voice.structure = structure;
         voice.brightness = brightness;
         voice.damping = damping;

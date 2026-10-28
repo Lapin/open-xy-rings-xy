@@ -26,7 +26,7 @@ const i32 kHaloLife = unit;                                     // a change's ha
 const i32 kRestSpeed = 40;                                      // tenths of a degree per second at rest
 const i32 kKickSpeed = 700;                                     // added by a fresh note
 const i32 kLedX[2] = {30 * unit, 450 * unit};
-const i32 kLedY[4] = {82 * unit, 114 * unit, 146 * unit, 178 * unit};
+const i32 kLedY[4] = {73 * unit, 111 * unit, 149 * unit, 187 * unit};
 
 // A kick's life in Q10 seconds from Damping: 0.4 s dry to 2.4 s ringing.
 inline i32 kick_life(i32 damping) { return 410 + ((damping >> 20) * 2048 >> 11); }

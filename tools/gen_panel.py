@@ -24,8 +24,9 @@ BODY = 40                              # the body circle's radius
 INNER_RINGS = 5                        # the modal body's rings, as many as Position asks for
 PATHS, POINTS = 4, 64                  # mutable outlines: the string, sympathetic and chords bodies' insides
 LED_X = (30, 450)                      # model LEDs left, modes LEDs right
-LED_Y = (82, 114, 146, 178)
-LED_R = 8
+LED_Y = (73, 111, 149, 187)
+LED_R = 12
+ICON_S = LED_R / 8                     # the icons drawn at radius 8, scaled with the ring
 PALETTE = 16
 BARS = ['#000000', '#323232', '#4B4B4B', '#646464', '#7D7D7D', '#969696', '#AFAFAF', '#CDCDCD']
 FONT = 'font-family="UniversNextPro-Light"'
@@ -303,24 +304,26 @@ def ribbon(points, colour, half=0.4):
 
 
 def model_icon(k, cx, cy):
+    s = ICON_S
     if k == 0:   # modal: concentric rings
-        return [f'<circle cx="{cx}" cy="{cy}" r="2.2" fill="none" stroke="{ICON}" stroke-width="0.8"/>',
-                f'<circle cx="{cx}" cy="{cy}" r="4.6" fill="none" stroke="{ICON}" stroke-width="0.8"/>']
+        return [f'<circle cx="{cx}" cy="{cy}" r="{2.2 * s:.1f}" fill="none" stroke="{ICON}" stroke-width="{0.8 * s:.1f}"/>',
+                f'<circle cx="{cx}" cy="{cy}" r="{4.6 * s:.1f}" fill="none" stroke="{ICON}" stroke-width="{0.8 * s:.1f}"/>']
     if k == 1:   # string: a spectrum of bars
-        return [rect(cx + x, cy, 1, h, ICON) for x, h in ((-4, 5), (-2, 8), (0, 6), (2, 9), (4, 4))]
+        return [rect(cx + x * s, cy, 1 * s, h * s, ICON) for x, h in ((-4, 5), (-2, 8), (0, 6), (2, 9), (4, 4))]
     if k == 2:   # sympathetic: three wavy strings
         lines = []
         for x in (-3.6, -0.4, 2.8):
-            lines.append(ribbon([(cx + x + 1.1 * math.sin(i * math.pi / 2), cy - 5 + i * 2.5) for i in range(5)], ICON))
+            lines.append(ribbon([(cx + (x + 1.1 * math.sin(i * math.pi / 2)) * s, cy + (-5 + i * 2.5) * s) for i in range(5)], ICON, 0.4 * s))
         return lines
     # chords: a stack of bars
-    return [rect(cx, cy + y, w, 1.2, ICON) for y, w in ((-3.5, 9), (0, 6), (3.5, 3.5))]
+    return [rect(cx, cy + y * s, w * s, 1.2 * s, ICON) for y, w in ((-3.5, 9), (0, 6), (3.5, 3.5))]
 
 
 def modes_icon(k, cx, cy):
+    s = ICON_S
     spots = [[(0, 0)], [(-2.6, 0), (2.6, 0)], [(0, -2.6), (-2.4, 1.6), (2.4, 1.6)],
              [(-2.4, -2.4), (2.4, -2.4), (-2.4, 2.4), (2.4, 2.4)]][k]
-    return [dot(cx + x, cy + y, 1.3, ICON) for x, y in spots]
+    return [dot(cx + x * s, cy + y * s, 1.3 * s, ICON) for x, y in spots]
 
 
 out = [f'<g id="{ID}_panel">',

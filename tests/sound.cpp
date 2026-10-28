@@ -66,7 +66,7 @@ int main() {
         check(std::fabs(got - expected) < expected * 0.01, "exp2_scale wrong for a large negative exponent");
     }
     {   // A default note: a clear strike that decays over a second.
-        Note note(440, 0.25, 0.5, 0.6, 0, modes12, 0);
+        Note note(440, 0.5, 0.5, 0.6, 0, modes12, 0);
         const double early = note.render(4);          // 6 ms
         const double middle = note.render(30);        // to 50 ms
         for (unsigned b = 0; b < 300; ++b) note.render(1);  // to 0.5 s
@@ -77,7 +77,7 @@ int main() {
         check(note.peak <= 0.5, "louder than half scale");
     }
     {   // In tune: a harmonic series repeats every period (autocorrelation at 100.2 samples).
-        Note note(440, 0.25, 0.5, 0.7, 0, modes12, 0);
+        Note note(440, 0.5, 0.5, 0.7, 0, modes12, 0);
         note.render(8);
         double s[64 * N];
         note.render(64, s);
@@ -89,21 +89,21 @@ int main() {
         check(lagged / std::sqrt(same * shifted) > 0.9, "not periodic at the note");
     }
     {   // Damping: more of it rings longer; Modes: more of them cost more energy at the top.
-        Note dry(220, 0.25, 0.5, 0.2, 0, modes12, 0), wet(220, 0.25, 0.5, 0.9, 0, modes12, 0);
+        Note dry(220, 0.5, 0.5, 0.2, 0, modes12, 0), wet(220, 0.5, 0.5, 0.9, 0, modes12, 0);
         dry.render(4); wet.render(4);
         for (unsigned b = 0; b < 200; ++b) { dry.render(1); wet.render(1); }
         check(wet.render(20) > dry.render(20) * 10, "Damping does not lengthen the ring");
-        Note few(220, 0.25, 0.5, 0.6, 0, 0, 0), many(220, 0.25, 0.5, 0.6, 0, 1, 0);
+        Note few(220, 0.5, 0.5, 0.6, 0, 0, 0), many(220, 0.5, 0.5, 0.6, 0, 1, 0);
         few.render(1); many.render(1);
         check(few.voice.count == 6 && many.voice.count == 24, "Modes count");
     }
     {   // Position at the middle strike mutes every second partial: no energy at 880 Hz' neighbours? Check it differs.
-        Note end(440, 0.25, 0.5, 0.6, 0, modes12, 0), middle(440, 0.25, 0.5, 0.6, 1, modes12, 0);
+        Note end(440, 0.5, 0.5, 0.6, 0, modes12, 0), middle(440, 0.5, 0.5, 0.6, 1, modes12, 0);
         end.render(1); middle.render(1);
         check(end.voice.modes[1].amplitude > 0x7f000000 && middle.voice.modes[1].amplitude < 0x01000000, "Position weights");
     }
-    {   // Structure: harmonic at 0.25, stretched above, compressed below.
-        Note harmonic(110, 0.25, 0.5, 0.6, 0, modes12, 0), bell(110, 0.8, 0.5, 0.6, 0, modes12, 0), tight(110, 0, 0.5, 0.6, 0, modes12, 0);
+    {   // Structure: harmonic at 0.5, stretched above, compressed below.
+        Note harmonic(110, 0.5, 0.5, 0.6, 0, modes12, 0), bell(110, 0.8, 0.5, 0.6, 0, modes12, 0), tight(110, 0, 0.5, 0.6, 0, modes12, 0);
         harmonic.render(1); bell.render(1); tight.render(1);
         const opxy::i32 h = harmonic.voice.modes[3].rotation, b = bell.voice.modes[3].rotation, t = tight.voice.modes[3].rotation;
         check(b > h && t < h, "Structure direction");
@@ -128,7 +128,7 @@ int main() {
     {   // The string models: a pluck that rings, a tuned string, and sympathetic strings that answer.
         static const char* const names[3] = {"string", "sympathetic", "chords"};
         for (unsigned model = 1; model < 4; ++model) {
-            Note note(220, 0.3, 0.6, 0.6, 0.3, modes12, 0, 0.125 + 0.25 * model);
+            Note note(220, 0.5, 0.6, 0.6, 0.3, modes12, 0, 0.125 + 0.25 * model);
             double early = note.render(8);
             double swell = note.render(60);   // sympathetic strings gather energy for a second or so
             double mid = note.render(600);
@@ -143,7 +143,7 @@ int main() {
             check(note.peak <= 0.5, "sympathetic sustain unbounded");
         }
         // The plain string's pitch: the autocorrelation peak of a long ring sits at the period of 220 Hz.
-        Note note(220, 0.25, 0.6, 0.8, 0.3, modes12, 0, 0.375);  // Struct 0.25: no dispersion to bend the pitch
+        Note note(220, 0.5, 0.6, 0.8, 0.3, modes12, 0, 0.375);  // Struct 0.5: no dispersion to bend the pitch
         note.render(4);
         static double samples[N * 64];
         note.render(64, samples);
@@ -156,19 +156,19 @@ int main() {
         std::printf("string period %d samples (expected %.1f)\n", best_lag, 44100.0 / 220);
         check(best_lag >= 200 && best_lag <= 201, "string out of tune");
         // Damping lengthens the string's ring.
-        Note dry(220, 0.3, 0.6, 0.2, 0.3, modes12, 0, 0.375), wet(220, 0.3, 0.6, 0.9, 0.3, modes12, 0, 0.375);
+        Note dry(220, 0.5, 0.6, 0.2, 0.5, modes12, 0, 0.375), wet(220, 0.5, 0.6, 0.9, 0.5, modes12, 0, 0.375);
         dry.render(4); wet.render(4);
         dry.render(30); wet.render(30);
         check(wet.render(10) > dry.render(10), "string Damping direction");
     }
     {   // Short decay falls silent instead of freezing at a floor.
-        Note note(440, 0.25, 0.5, 0, 0, modes12, 0);
+        Note note(440, 0.5, 0.5, 0, 0, modes12, 0);
         note.render(4);
         for (unsigned b = 0; b < 345; ++b) note.render(1);  // half a second
         check(note.render(20) < 1e-5, "a dead note still sounds");
     }
     {   // A voice that never started is silent.
-        Note note(440, 0.25, 0.5, 0.6, 0, modes12, 0);
+        Note note(440, 0.5, 0.5, 0.6, 0, modes12, 0);
         note.voice.pending = 0;
         check(note.render(10) == 0, "unstruck voice sounds");
     }
