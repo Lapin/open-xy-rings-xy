@@ -56,10 +56,10 @@
       "mapping": {
         "kind": "enum",
         "labels": [
-          "modal",
-          "string",
-          "sympath",
-          "chords"
+          "mdal",
+          "strn",
+          "symp",
+          "chrd"
         ]
       },
       "display": "enum"
