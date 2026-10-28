@@ -148,8 +148,13 @@ measured.
 
 Follow the SDK's [firmware build guide](https://github.com/etcetc000/open-xy/blob/staging/docs/build.md)
 and [hardware profiling workflow](https://github.com/etcetc000/open-xy/blob/staging/docs/profiling.md).
-Hardware validation is pending: no device measurement has been made yet.
-Keep firmware and stock content outside every checkout.
+Measured on an OP-XY on 2026-10-28 at commit fdfc637 with the SDK's
+`opxy-synth-c8-v1` workload (note 60, every control at its midpoint: the
+sympathetic model at two strings): 1.41% of the stock block budget per voice,
+median of three runs, against Karplus at 3.0% in the same runs. The report is
+[cpu-report.md](cpu-report.md) and the catalog field [cpu.json](cpu.json);
+both are bound to that commit, so a new machine revision needs a new
+measurement. Keep firmware and stock content outside every checkout.
 
 The code in this folder is covered by [LICENSE](LICENSE). The partial series,
 string loop, decay rules and exciters follow Mutable Instruments Rings,
