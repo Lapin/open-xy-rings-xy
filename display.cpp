@@ -58,6 +58,8 @@ inline void display_reset(DisplayState& state) {
     state.age = kExpired;
     for (u32 i = 0; i < kRipples; ++i) state.ripple_age[i] = kExpired;
     state.next_ripple = 0;
+    for (u32 i = 0; i < kWaves; ++i) state.wave_age[i] = kExpired;
+    state.next_wave = 0;
     state.angle = 0;
     state.model = state.modes = 0xffffffffu;
     state.halo_age[0] = state.halo_age[1] = kHaloLife;
@@ -89,13 +91,17 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     if (fresh || input.reduced_motion) {
         state.age = kExpired;
         for (u32 i = 0; i < kRipples; ++i) state.ripple_age[i] = kExpired;
+        for (u32 i = 0; i < kWaves; ++i) state.wave_age[i] = kExpired;
     } else {
         state.age = clamp(state.age + elapsed, 0, kExpired);
         for (u32 i = 0; i < kRipples; ++i) state.ripple_age[i] = clamp(state.ripple_age[i] + elapsed, 0, kExpired);
+        for (u32 i = 0; i < kWaves; ++i) state.wave_age[i] = clamp(state.wave_age[i] + elapsed, 0, kExpired);
         if (input.track < 8 && input.note_serial != state.previous_event) {
             state.age = 0;
             state.ripple_age[state.next_ripple] = 0;
             state.next_ripple = (state.next_ripple + 1) % kRipples;
+            state.wave_age[state.next_wave] = 0;
+            state.next_wave = (state.next_wave + 1) % kWaves;
         }
     }
     for (u32 i = 0; i < 2; ++i) state.halo_age[i] = clamp(state.halo_age[i] + elapsed, 0, kHaloLife);
@@ -157,15 +163,21 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     // piece out: pupils, eyes, drops, inner teardrops, outlines, the wavy rings,
     // the circled dots. Structure brings the layers in in that order, and a note
     // lights them in that order too, a ripple from the centre out over the
-    // kick's life. All share the turn; the dots turn the other way.
+    // kick's life. Each recent note has its own ripple, so a new note never
+    // cancels one in flight. All share the turn; the dots turn the other way.
     const i32 detail = structure >> 21;                                  // 0..1023
-    const i32 progress = clamp(state.age * rate >> 10, 0, unit);        // 0..1 over the kick's life
     i32 layer[7];
     for (u32 k = 0; k < 7; ++k) {
         const i32 start = static_cast<i32>(k) * 150 - 130;              // pupils always, dots from 770
         const i32 shown = k == 0 ? unit : fade(detail, start, start + 160);
-        const i32 away = progress - static_cast<i32>(k) * 96;
-        const i32 pulse = clamp(unit - (away < 0 ? -away : away) * 4, 0, unit);
+        i32 pulse = 0;
+        for (u32 w = 0; w < kWaves; ++w) {
+            const i32 progress = clamp(state.wave_age[w] * rate >> 10, 0, unit);  // 0..1 over the kick's life
+            if (progress >= unit) continue;
+            const i32 away = progress - static_cast<i32>(k) * 96;
+            const i32 here = clamp(unit - (away < 0 ? -away : away) * 4, 0, unit);
+            if (here > pulse) pulse = here;
+        }
         layer[k] = (6 * shown + 7 * pulse) >> 10;
     }
     for (u32 i = 0; i < kPaisleys; ++i) {

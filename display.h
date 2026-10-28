@@ -12,7 +12,7 @@ namespace mi_rings {
 //   107..110 the model LEDs; 111..114 the modes LEDs; 115 and 116 the halos.
 using Frame = opxy::draw::Frame<0, 0, 117, 16, 16>;
 const opxy::u32 kBodyNode = 8, kFirstInner = 9, kInnerRings = 3, kCentreNode = 12, kStrikeNode = 13;
-const opxy::u32 kFirstRipple = 14, kRipples = 3, kFirstString = 17, kStrings4 = 4;
+const opxy::u32 kFirstRipple = 14, kRipples = 3, kWaves = 4, kFirstString = 17, kStrings4 = 4;
 const opxy::u32 kPaisleys = 12, kFirstOutline = 21, kFirstInnerDrop = 33, kFirstEye = 45, kFirstPupil = 57, kFirstDrop = 69;
 const opxy::u32 kRingInner = 81, kRingOuter = 82, kFirstDotRing = 83, kFirstDot = 95;
 const opxy::u32 kFirstModelLed = 107, kFirstModesLed = 111, kHaloNode = 115;
@@ -21,6 +21,8 @@ struct DisplayState {
     opxy::i32 age;                      // since the last note, Q10 seconds, saturating
     opxy::i32 ripple_age[kRipples];
     opxy::u32 next_ripple;
+    opxy::i32 wave_age[kWaves];         // the mandala's light ripples, one per recent note
+    opxy::u32 next_wave;
     opxy::i32 angle;                    // the mandala's turn, tenths of a degree, 0..3599
     opxy::u32 model, modes;             // the lit LEDs
     opxy::i32 halo_age[2];              // since the model and modes last changed, Q10 seconds
