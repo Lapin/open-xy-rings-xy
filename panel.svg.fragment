@@ -240,45 +240,68 @@
 <path id="mi_rings_node_189" d="M22,-82.1 L28.5,-67.2 L8.9,-72.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
 <path id="mi_rings_node_190" d="M22,-82.1 L28.5,-67.2 L8.9,-72.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
 <path id="mi_rings_node_191" d="M0,-87 L7.6,-86.7 L15.1,-85.7 L22.5,-84 L29.8,-81.8 L36.8,-78.8 L43.5,-75.3 L49.9,-71.3 L55.9,-66.6 L61.5,-61.5 L66.6,-55.9 L71.3,-49.9 L75.3,-43.5 L78.8,-36.8 L81.8,-29.8 L84,-22.5 L85.7,-15.1 L86.7,-7.6 L87,0 L86.7,7.6 L85.7,15.1 L84,22.5 L81.8,29.8 L78.8,36.8 L75.3,43.5 L71.3,49.9 L66.6,55.9 L61.5,61.5 L55.9,66.6 L49.9,71.3 L43.5,75.3 L36.8,78.8 L29.8,81.8 L22.5,84 L15.1,85.7 L7.6,86.7 L0,87 L-7.6,86.7 L-15.1,85.7 L-22.5,84 L-29.8,81.8 L-36.8,78.8 L-43.5,75.3 L-49.9,71.3 L-55.9,66.6 L-61.5,61.5 L-66.6,55.9 L-71.3,49.9 L-75.3,43.5 L-78.8,36.8 L-81.8,29.8 L-84,22.5 L-85.7,15.1 L-86.7,7.6 L-87,0 L-86.7,-7.6 L-85.7,-15.1 L-84,-22.5 L-81.8,-29.8 L-78.8,-36.8 L-75.3,-43.5 L-71.3,-49.9 L-66.6,-55.9 L-61.5,-61.5 L-55.9,-66.6 L-49.9,-71.3 L-43.5,-75.3 L-36.8,-78.8 L-29.8,-81.8 L-22.5,-84 L-15.1,-85.7 L-7.6,-86.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<!-- chords: 6-fold -->
-<circle id="mi_rings_node_192" cx="33" cy="-57.2" r="2" fill="#808080" stroke="#808080" stroke-width=".5"/>
-<circle id="mi_rings_node_193" cx="33" cy="-57.2" r="2" fill="#808080" stroke="#808080" stroke-width=".5"/>
-<circle id="mi_rings_node_194" cx="33" cy="-57.2" r="2" fill="#808080" stroke="#808080" stroke-width=".5"/>
-<circle id="mi_rings_node_195" cx="33" cy="-57.2" r="2" fill="#808080" stroke="#808080" stroke-width=".5"/>
-<circle id="mi_rings_node_196" cx="33" cy="-57.2" r="2" fill="#808080" stroke="#808080" stroke-width=".5"/>
-<circle id="mi_rings_node_197" cx="33" cy="-57.2" r="2" fill="#808080" stroke="#808080" stroke-width=".5"/>
-<circle id="mi_rings_node_198" cx="33" cy="-57.2" r="6" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_199" cx="33" cy="-57.2" r="6" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_200" cx="33" cy="-57.2" r="6" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_201" cx="33" cy="-57.2" r="6" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_202" cx="33" cy="-57.2" r="6" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_203" cx="33" cy="-57.2" r="6" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_204" d="M0,-84 L72.7,42 L-72.7,42 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_205" d="M72.7,-42 L0,84 L-72.7,-42 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_206" d="M0,-77 L5.5,-56.7 L-5.5,-56.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_207" d="M0,-77 L5.5,-56.7 L-5.5,-56.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_208" d="M0,-77 L5.5,-56.7 L-5.5,-56.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_209" d="M0,-77 L5.5,-56.7 L-5.5,-56.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_210" d="M0,-77 L5.5,-56.7 L-5.5,-56.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_211" d="M0,-77 L5.5,-56.7 L-5.5,-56.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<path id="mi_rings_node_212" d="M0,-87 L7.6,-86.7 L15.1,-85.7 L22.5,-84 L29.8,-81.8 L36.8,-78.8 L43.5,-75.3 L49.9,-71.3 L55.9,-66.6 L61.5,-61.5 L66.6,-55.9 L71.3,-49.9 L75.3,-43.5 L78.8,-36.8 L81.8,-29.8 L84,-22.5 L85.7,-15.1 L86.7,-7.6 L87,0 L86.7,7.6 L85.7,15.1 L84,22.5 L81.8,29.8 L78.8,36.8 L75.3,43.5 L71.3,49.9 L66.6,55.9 L61.5,61.5 L55.9,66.6 L49.9,71.3 L43.5,75.3 L36.8,78.8 L29.8,81.8 L22.5,84 L15.1,85.7 L7.6,86.7 L0,87 L-7.6,86.7 L-15.1,85.7 L-22.5,84 L-29.8,81.8 L-36.8,78.8 L-43.5,75.3 L-49.9,71.3 L-55.9,66.6 L-61.5,61.5 L-66.6,55.9 L-71.3,49.9 L-75.3,43.5 L-78.8,36.8 L-81.8,29.8 L-84,22.5 L-85.7,15.1 L-86.7,7.6 L-87,0 L-86.7,-7.6 L-85.7,-15.1 L-84,-22.5 L-81.8,-29.8 L-78.8,-36.8 L-75.3,-43.5 L-71.3,-49.9 L-66.6,-55.9 L-61.5,-61.5 L-55.9,-66.6 L-49.9,-71.3 L-43.5,-75.3 L-36.8,-78.8 L-29.8,-81.8 L-22.5,-84 L-15.1,-85.7 L-7.6,-86.7 Z" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_213" cx="39.7" cy="-68.8" r="2.5" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_214" cx="39.7" cy="-68.8" r="2.5" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_215" cx="39.7" cy="-68.8" r="2.5" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_216" cx="39.7" cy="-68.8" r="2.5" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_217" cx="39.7" cy="-68.8" r="2.5" fill="none" stroke="#808080" stroke-width=".8"/>
-<circle id="mi_rings_node_218" cx="39.7" cy="-68.8" r="2.5" fill="none" stroke="#808080" stroke-width=".8"/>
+<!-- chords: 8-fold -->
+<path id="mi_rings_node_192" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_193" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_194" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_195" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_196" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_197" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_198" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_199" d="M0,-42 L2.6,-45 L3.3,-47 L2.7,-50 L0,-54 L-2.7,-50 L-3.3,-47 L-2.6,-45 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_200" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_201" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_202" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_203" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_204" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_205" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_206" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_207" d="M16.1,-38.8 L20.4,-40.8 L22.1,-42.6 L22.7,-46.2 L21.4,-51.7 L16.6,-48.7 L14.5,-45.8 L14.4,-43.3 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_208" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_209" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_210" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_211" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_212" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_213" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_214" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_215" d="M0,-44 L4.8,-50.5 L6.2,-54.8 L6.2,-57 L5,-61.3 L0,-70 L-5,-61.3 L-6.2,-57 L-6.2,-54.8 L-4.8,-50.5 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_216" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_217" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_218" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_219" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_220" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_221" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_222" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_223" d="M14.3,-55.2 L16.1,-59.1 L18.9,-62.2 L22.7,-64.7 L27.6,-66.5 L29.7,-61.8 L30.6,-57.4 L30.4,-53.1 L28.9,-49.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<circle id="mi_rings_node_224" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_225" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_226" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_227" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_228" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_229" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_230" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_231" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_232" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_233" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_234" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_235" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_236" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_237" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_238" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<circle id="mi_rings_node_239" cx="14.3" cy="-72.1" r="1.6" fill="#808080" stroke="#808080" stroke-width=".5"/>
+<path id="mi_rings_node_240" d="M0,-76 L13.2,-74.8 L26,-71.4 L38,-65.8 L48.9,-58.2 L53.7,-53.7 L58.2,-48.9 L65.8,-38 L71.4,-26 L74.8,-13.2 L76,0 L74.8,13.2 L71.4,26 L68.9,32.1 L62.3,43.6 L53.7,53.7 L43.6,62.3 L32.1,68.9 L26,71.4 L13.2,74.8 L0,76 L-13.2,74.8 L-26,71.4 L-32.1,68.9 L-43.6,62.3 L-53.7,53.7 L-62.3,43.6 L-65.8,38 L-71.4,26 L-74.8,13.2 L-76,0 L-74.8,-13.2 L-73.4,-19.7 L-68.9,-32.1 L-62.3,-43.6 L-53.7,-53.7 L-43.6,-62.3 L-32.1,-68.9 L-26,-71.4 L-13.2,-74.8 Z" fill="none" stroke="#808080" stroke-width=".8"/>
+<path id="mi_rings_node_241" d="M-3.3,-76.5 L-3.3,-84.7 L-2.9,-86.3 L-1.7,-87.6 L0,-88 L1.7,-87.6 L2.9,-86.3 L3.3,-84.7 L3.3,-76.5 L8.7,-76.1 L10,-84.2 L10.7,-85.7 L12.1,-86.7 L13.8,-86.9 L15.3,-86.2 L16.3,-84.8 L16.5,-83.1 L15.2,-75 L20.5,-73.8 L23,-81.6 L24,-83 L25.5,-83.8 L27.2,-83.7 L28.6,-82.8 L29.4,-81.2 L29.3,-79.5 L26.8,-71.7 L31.8,-69.7 L35.5,-77 L36.7,-78.2 L38.3,-78.8 L40,-78.4 L41.2,-77.3 L41.8,-75.6 L41.4,-74 L37.7,-66.7 L42.3,-63.8 L47.1,-70.5 L48.4,-71.5 L50.1,-71.8 L51.7,-71.2 L52.8,-69.9 L53.1,-68.2 L52.5,-66.6 L47.6,-59.9 L51.8,-56.4 L57.6,-62.2 L59,-63.1 L60.7,-63.1 L62.2,-62.2 L63.1,-60.7 L63.1,-59 L62.2,-57.6 L56.4,-51.8 L59.9,-47.6 L66.6,-52.5 L68.2,-53.1 L69.9,-52.8 L71.2,-51.7 L71.8,-50.1 L71.5,-48.4 L70.5,-47.1 L63.8,-42.3 L66.7,-37.7 L74,-41.4 L75.6,-41.8 L77.3,-41.2 L78.4,-40 L78.8,-38.3 L78.2,-36.7 L77,-35.5 L69.7,-31.8 L71.7,-26.8 L79.5,-29.3 L81.2,-29.4 L82.8,-28.6 L83.7,-27.2 L83.8,-25.5 L83,-24 L81.6,-23 L73.8,-20.5 L75,-15.2 L83.1,-16.5 L84.8,-16.3 L86.2,-15.3 L86.9,-13.8 L86.7,-12.1 L85.7,-10.7 L84.2,-10 L76.1,-8.7 L76.5,-3.3 L84.7,-3.3 L86.3,-2.9 L87.6,-1.7 L88,0 L87.6,1.7 L86.3,2.9 L84.7,3.3 L76.5,3.3 L76.1,8.7 L84.2,10 L85.7,10.7 L86.7,12.1 L86.9,13.8 L86.2,15.3 L84.8,16.3 L83.1,16.5 L75,15.2 L73.8,20.5 L81.6,23 L83,24 L83.8,25.5 L83.7,27.2 L82.8,28.6 L81.2,29.4 L79.5,29.3 L71.7,26.8 L69.7,31.8 L77,35.5 L78.2,36.7 L78.8,38.3 L78.4,40 L77.3,41.2 L75.6,41.8 L74,41.4 L66.7,37.7 L63.8,42.3 L70.5,47.1 L71.5,48.4 L71.8,50.1 L71.2,51.7 L69.9,52.8 L68.2,53.1 L66.6,52.5 L59.9,47.6 L56.4,51.8 L62.2,57.6 L63.1,59 L63.1,60.7 L62.2,62.2 L60.7,63.1 L59,63.1 L57.6,62.2 L51.8,56.4 L47.6,59.9 L52.5,66.6 L53.1,68.2 L52.8,69.9 L51.7,71.2 L50.1,71.8 L48.4,71.5 L47.1,70.5 L42.3,63.8 L37.7,66.7 L41.4,74 L41.8,75.6 L41.2,77.3 L40,78.4 L38.3,78.8 L36.7,78.2 L35.5,77 L31.8,69.7 L26.8,71.7 L29.3,79.5 L29.4,81.2 L28.6,82.8 L27.2,83.7 L25.5,83.8 L24,83 L23,81.6 L20.5,73.8 L15.2,75 L16.5,83.1 L16.3,84.8 L15.3,86.2 L13.8,86.9 L12.1,86.7 L10.7,85.7 L10,84.2 L8.7,76.1 L3.3,76.5 L3.3,84.7 L2.9,86.3 L1.7,87.6 L0,88 L-1.7,87.6 L-2.9,86.3 L-3.3,84.7 L-3.3,76.5 L-8.7,76.1 L-10,84.2 L-10.7,85.7 L-12.1,86.7 L-13.8,86.9 L-15.3,86.2 L-16.3,84.8 L-16.5,83.1 L-15.2,75 L-20.5,73.8 L-23,81.6 L-24,83 L-25.5,83.8 L-27.2,83.7 L-28.6,82.8 L-29.4,81.2 L-29.3,79.5 L-26.8,71.7 L-31.8,69.7 L-35.5,77 L-36.7,78.2 L-38.3,78.8 L-40,78.4 L-41.2,77.3 L-41.8,75.6 L-41.4,74 L-37.7,66.7 L-42.3,63.8 L-47.1,70.5 L-48.4,71.5 L-50.1,71.8 L-51.7,71.2 L-52.8,69.9 L-53.1,68.2 L-52.5,66.6 L-47.6,59.9 L-51.8,56.4 L-57.6,62.2 L-59,63.1 L-60.7,63.1 L-62.2,62.2 L-63.1,60.7 L-63.1,59 L-62.2,57.6 L-56.4,51.8 L-59.9,47.6 L-66.6,52.5 L-68.2,53.1 L-69.9,52.8 L-71.2,51.7 L-71.8,50.1 L-71.5,48.4 L-70.5,47.1 L-63.8,42.3 L-66.7,37.7 L-74,41.4 L-75.6,41.8 L-77.3,41.2 L-78.4,40 L-78.8,38.3 L-78.2,36.7 L-77,35.5 L-69.7,31.8 L-71.7,26.8 L-79.5,29.3 L-81.2,29.4 L-82.8,28.6 L-83.7,27.2 L-83.8,25.5 L-83,24 L-81.6,23 L-73.8,20.5 L-75,15.2 L-83.1,16.5 L-84.8,16.3 L-86.2,15.3 L-86.9,13.8 L-86.7,12.1 L-85.7,10.7 L-84.2,10 L-76.1,8.7 L-76.5,3.3 L-84.7,3.3 L-86.3,2.9 L-87.6,1.7 L-88,0 L-87.6,-1.7 L-86.3,-2.9 L-84.7,-3.3 L-76.5,-3.3 L-76.1,-8.7 L-84.2,-10 L-85.7,-10.7 L-86.7,-12.1 L-86.9,-13.8 L-86.2,-15.3 L-84.8,-16.3 L-83.1,-16.5 L-75,-15.2 L-73.8,-20.5 L-81.6,-23 L-83,-24 L-83.8,-25.5 L-83.7,-27.2 L-82.8,-28.6 L-81.2,-29.4 L-79.5,-29.3 L-71.7,-26.8 L-69.7,-31.8 L-77,-35.5 L-78.2,-36.7 L-78.8,-38.3 L-78.4,-40 L-77.3,-41.2 L-75.6,-41.8 L-74,-41.4 L-66.7,-37.7 L-63.8,-42.3 L-70.5,-47.1 L-71.5,-48.4 L-71.8,-50.1 L-71.2,-51.7 L-69.9,-52.8 L-68.2,-53.1 L-66.6,-52.5 L-59.9,-47.6 L-56.4,-51.8 L-62.2,-57.6 L-63.1,-59 L-63.1,-60.7 L-62.2,-62.2 L-60.7,-63.1 L-59,-63.1 L-57.6,-62.2 L-51.8,-56.4 L-47.6,-59.9 L-52.5,-66.6 L-53.1,-68.2 L-52.8,-69.9 L-51.7,-71.2 L-50.1,-71.8 L-48.4,-71.5 L-47.1,-70.5 L-42.3,-63.8 L-37.7,-66.7 L-41.4,-74 L-41.8,-75.6 L-41.2,-77.3 L-40,-78.4 L-38.3,-78.8 L-36.7,-78.2 L-35.5,-77 L-31.8,-69.7 L-26.8,-71.7 L-29.3,-79.5 L-29.4,-81.2 L-28.6,-82.8 L-27.2,-83.7 L-25.5,-83.8 L-24,-83 L-23,-81.6 L-20.5,-73.8 L-15.2,-75 L-16.5,-83.1 L-16.3,-84.8 L-15.3,-86.2 L-13.8,-86.9 L-12.1,-86.7 L-10.7,-85.7 L-10,-84.2 L-8.7,-76.1 Z" fill="none" stroke="#808080" stroke-width=".8"/>
 <!-- The LEDs and the halo that marks a change. -->
-<circle id="mi_rings_node_219" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_220" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_221" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_222" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_223" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_224" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_225" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_226" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
-<circle id="mi_rings_node_227" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="12" fill="none" stroke="#808080" stroke-width="1"/>
-<circle id="mi_rings_node_228" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="12" fill="none" stroke="#808080" stroke-width="1"/>
+<circle id="mi_rings_node_242" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_243" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_244" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_245" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_246" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_247" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_248" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_249" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="8" fill="none" stroke="#808080" stroke-width="1.2"/>
+<circle id="mi_rings_node_250" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="12" fill="none" stroke="#808080" stroke-width="1"/>
+<circle id="mi_rings_node_251" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="12" fill="none" stroke="#808080" stroke-width="1"/>
 <circle id="mi_rings_palette_0" cx="640" cy="0" r="1" fill="#000000" stroke="#000000" stroke-width="1"/>
 <circle id="mi_rings_palette_1" cx="640" cy="0" r="1" fill="#111111" stroke="#111111" stroke-width="1"/>
 <circle id="mi_rings_palette_2" cx="640" cy="0" r="1" fill="#222222" stroke="#222222" stroke-width="1"/>

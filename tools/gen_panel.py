@@ -152,21 +152,49 @@ def drawn_sympathetic():
     return fold, pieces, 1.0
 
 
+def arch(r0, r1, half_degrees, turn, steps=8):
+    """A pointed arch: a flat base on the arc at r0, sides bowing out to a tip at r1."""
+    h = math.radians(half_degrees)
+    left, right = (-r0 * math.sin(h), -r0 * math.cos(h)), (r0 * math.sin(h), -r0 * math.cos(h))
+    tip = (0, -r1)
+    bulge = (r0 * math.sin(h) * 1.1, -(r0 + (r1 - r0) * 0.55))       # the sides' control point
+    def bezier(p0, c, p1):
+        return [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0],
+                 (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]) for t in (i / steps for i in range(1, steps))]
+    pts = [left] + bezier(left, (-bulge[0], bulge[1]), tip) + [tip] + bezier(tip, bulge, right) + [right]
+    return [turned(x, y, turn) for x, y in pts]
+
+
+def crown(r0, r1, fingers, fill=0.55, tip_steps=6):
+    """A fringe of rounded fingers from r0 to r1 as one outline, joined along the arc at r0."""
+    pts = []
+    pitch = 2 * math.pi / fingers
+    half = fill * pitch / 2                                  # a finger's half width, radians at r0
+    w = r0 * math.sin(half)                                  # ... and in pixels
+    for k in range(fingers):
+        a = k * pitch
+        pts.append(turned(-w, -r0, math.degrees(a)))
+        centre = r1 - w                                      # the tip's semicircle
+        for i in range(tip_steps + 1):
+            t = math.pi * i / tip_steps
+            pts.append(turned(-w * math.cos(t), -(centre + w * math.sin(t)), math.degrees(a)))
+        pts.append(turned(w, -r0, math.degrees(a)))
+    return pts
+
+
 def drawn_chords():
-    """The chords body's mandala, drawn: a hexagram of two triangles about the
-    body, triads as triangles, with a smaller triangle nested in each of its
-    six points, an eye in each gap between them, an outer ring and dots."""
-    fold = 6
-    gap = 360 / fold / 2
-    def star(radius, turn):
-        return [turned(0, -radius, turn + k * 120) for k in range(3)]
-    pieces = [('dot', ('circle', *turned(0, -66, gap), 2), True, 0, fold),
-              ('eye', ('circle', *turned(0, -66, gap), 6), False, 1, fold),
-              ('triad_up', ('path', star(84, 0)), False, 2, 1),
-              ('triad_down', ('path', star(84, 60)), False, 3, 1),
-              ('point', ('path', triangle(57, 77, 5.5, 0)), False, 4, fold),
-              ('ring_outer', ('path', circle_path(87)), False, 5, 1),
-              ('bead', ('circle', *turned(0, -79.5, gap), 2.5), False, 6, fold)]
+    """The chords body's mandala, drawn as a layered flower: three rings of
+    lens petals, each turned half a step from the last, a row of pointed
+    arches, dots, a ring and a fringe of rounded fingers."""
+    fold = 8
+    half = 360 / fold / 2
+    pieces = [('petal_a', ('path', petal(42, 54, 8, 0, 1.0)), False, 0, fold),
+              ('petal_b', ('path', petal(42, 56, 10, half, 1.0)), False, 1, fold),
+              ('petal_c', ('path', petal(44, 70, 15, 0, 1.0)), False, 2, fold),
+              ('arch', ('path', arch(57, 72, 8, half)), False, 3, fold),
+              ('dot', ('circle', *turned(0, -73.5, half / 2), 1.6), True, 4, 2 * fold),
+              ('ring', ('path', circle_path(76)), False, 5, 1),
+              ('fringe', ('path', crown(76.5, 88, 40)), False, 6, 1)]
     return fold, pieces, 1.0
 
 

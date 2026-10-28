@@ -3,7 +3,7 @@
 #include <opxy/types.hpp>
 
 namespace mi_rings {
-const opxy::u32 kFirstMandala = 21, kFirstModelLed = 219, kFirstModesLed = 223, kHaloNode = 227, kNodes = 229;
+const opxy::u32 kFirstMandala = 21, kFirstModelLed = 242, kFirstModesLed = 246, kHaloNode = 250, kNodes = 252;
 const opxy::u32 kMandalaGroups = 10;
 struct MandalaGroup { opxy::u16 first; opxy::u8 count, layer, fill; };
 struct Mandala { opxy::u32 fold; opxy::i32 body_scale; MandalaGroup groups[10]; };
@@ -11,6 +11,6 @@ const Mandala kMandalas[4] = {
     {12, 1024, {{21, 12, 0, 1}, {33, 12, 1, 0}, {45, 12, 2, 0}, {57, 12, 3, 0}, {69, 12, 4, 0}, {81, 1, 5, 0}, {82, 1, 5, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // modal
     {8, 1024, {{83, 1, 0, 0}, {84, 1, 0, 0}, {85, 8, 1, 0}, {93, 8, 2, 0}, {101, 8, 3, 1}, {109, 8, 4, 0}, {117, 1, 5, 0}, {118, 8, 5, 0}, {126, 8, 5, 1}, {134, 8, 6, 1}}},  // string
     {12, 1024, {{142, 12, 0, 0}, {154, 12, 1, 0}, {166, 1, 2, 0}, {167, 12, 3, 0}, {179, 12, 4, 0}, {191, 1, 5, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // sympathetic
-    {6, 1024, {{192, 6, 0, 1}, {198, 6, 1, 0}, {204, 1, 2, 0}, {205, 1, 3, 0}, {206, 6, 4, 0}, {212, 1, 5, 0}, {213, 6, 6, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // chords
+    {8, 1024, {{192, 8, 0, 0}, {200, 8, 1, 0}, {208, 8, 2, 0}, {216, 8, 3, 0}, {224, 16, 4, 1}, {240, 1, 5, 0}, {241, 1, 6, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // chords
 };
 }
