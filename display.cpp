@@ -64,13 +64,14 @@ inline void put(Pen& pen, i32 x, i32 y) {
 // The string body's meter: seven bars on a baseline from edge to edge, each
 // `height[i]` above and below it (Q10 px, at least kEdge + a little). Out
 // along the top edge drawing the bars' upper halves, back along the bottom
-// drawing their lower halves: 64 points exactly.
+// drawing their lower halves: 64 points exactly. Outlines are never filled,
+// so the bars are 1.6 px wide: the strokes of their two sides overlap.
 const u32 kMeterBars = 7;
 const i32 kMeterX[kMeterBars] = {-30, -20, -10, 0, 10, 20, 30};
 const i32 kMeterReach[kMeterBars] = {20, 26, 30, 32, 30, 26, 20};   // px: the tallest bar inside the circle
 inline void meter(Frame::path_type& path, const i32 (&height)[kMeterBars]) {
     Pen pen = {path, 0};
-    const i32 end = 39 * unit, half = 2 * unit;
+    const i32 end = 39 * unit, half = 819;
     put(pen, -end, -kEdge);
     put(pen, -36 * unit, -kEdge);
     for (u32 i = 0; i < kMeterBars; ++i) {
@@ -153,6 +154,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 damping = clamp(input.slots[2], 0, opxy::q31::maximum);
     const i32 position = clamp(input.slots[3], 0, opxy::q31::maximum);
     const i32 strike = clamp(input.slots[5], 0, opxy::q31::maximum);
+    const i32 boost = unit + (strike >> 21);                             // Q10, 1..2: Strike exaggerates the insides' motion
 
     // Time: a note resets the kick and starts a ripple; a changed choice lights a halo.
     const i32 elapsed = clamp(input.elapsed, 0, kExpired);
@@ -223,15 +225,15 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         i32 height[kMeterBars];
         for (u32 i = 0; i < kMeterBars; ++i) {
             const i32 waver = unit - (unit - sine((state.age * kRate[i] + kPhase[i]) % 3600)) * 350 / 2048;  // 0.65..1
-            const i32 level = (kLevel[i] * flash >> 10) * waver >> 10;                                   // Q10
-            height[i] = kEdge + 205 + (kMeterReach[i] * level);                                          // Q10 px
+            const i32 level = clamp(((kLevel[i] * flash >> 10) * boost >> 10) * waver >> 10, 0, unit);    // Q10
+            height[i] = kEdge + 20 + (kMeterReach[i] * level);                                           // Q10 px
         }
         meter(frame.paths[0], height);
         drawn = 1;
     } else if (model == kSympathetic) {
         // Three S-waves from edge to edge, bent a little at rest and more while a note rings.
         static const i32 kColumn[3] = {-13, 0, 13}, kHalf[3] = {37 * unit + 205, 39 * unit + 410, 37 * unit + 205};
-        const i32 amplitude = 3 * unit + (5 * unit * flash >> 10);
+        const i32 amplitude = 3 * unit + ((5 * unit * flash >> 10) * boost >> 10);
         for (u32 i = 0; i < 3; ++i) s_wave(frame.paths[i], kColumn[i], kHalf[i], amplitude);
         drawn = 3;
     } else if (model == kChords) {
@@ -241,7 +243,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         static const i32 kMode[3] = {2, 3, 1}, kRate[3] = {33, 41, 29};
         for (u32 i = 0; i < 3; ++i) {
             const i32 shake = sine((state.age * kRate[i] + static_cast<i32>(i) * 1200) % 3600);
-            const i32 amplitude = ((3 * unit + 205) * flash >> 10) * shake >> 10;
+            const i32 amplitude = (((3 * unit + 205) * flash >> 10) * boost >> 10) * shake >> 10;
             string_line(frame.paths[i], kRow[i], kHalf[i], kMode[i], amplitude);
         }
         drawn = 3;
