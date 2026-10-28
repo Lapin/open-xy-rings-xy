@@ -4,11 +4,11 @@
 CC BY-SA 3.0) into motif.json: polylines in panel points about the knob's
 centre, each motif upright at angle 0, repeated `fold` times by the display.
 
-    pdftocairo -svg rings.ai rings.svg  (and elements.ai, clouds.ai)
-    python3 tools/extract_motif.py <folder with rings.svg, elements.svg and clouds.svg> > tools/motif.json
+    pdftocairo -svg rings.ai rings.svg; pdftocairo -svg elements.ai elements.svg
+    python3 tools/extract_motif.py <folder with rings.svg and elements.svg> > tools/motif.json
 
   modal        Rings, Frequency knob: a paisley, the wavy rings redrawn by gen_panel
-  string       Clouds, Position knob: a lotus of four petals and four flowers in rings
+  (the string body's mandala is drawn by gen_panel.py, not traced)
   sympathetic  Elements, Flow knob: a spike flanked by two teardrops with eyes
   chords       Rings, Structure knob: nested rounded triangles under a beaded arc,
                with a flower, leaves and drops
@@ -17,9 +17,9 @@ import json, math, os, re, sys
 import panel_paths as pp
 
 folder = sys.argv[1]
-svgs = {name: open(os.path.join(folder, name + '.svg')).read() for name in ('rings', 'elements', 'clouds')}
+svgs = {name: open(os.path.join(folder, name + '.svg')).read() for name in ('rings', 'elements')}
 paths = {name: [m.group(2) for m in re.finditer(r'<path([^>]*) d="([^"]*)"', svg)] for name, svg in svgs.items()}
-CENTRES = {'frequency': (53.83, 94.62), 'structure': (147.06, 94.44), 'mallet': (229.09, 136.33), 'flow': (135.85, 135.85), 'position': (51.1, 115.0)}
+CENTRES = {'frequency': (53.83, 94.62), 'structure': (147.06, 94.44), 'mallet': (229.09, 136.33), 'flow': (135.85, 135.85)}
 
 
 def piece(panel, knob, index, sub, turn=0.0, tolerance=0.05):
@@ -46,24 +46,13 @@ def group(name, points=None, circle_of=None, fill=False, layer=0):
 
 T = 10.0  # the paisley at 350 degrees, turned to upright
 motif = {
-    'source': 'Mutable Instruments panel artwork: Rings (Frequency, Structure), Elements (Flow) and Clouds (Position), CC BY-SA 3.0',
+    'source': 'Mutable Instruments panel artwork: Rings (Frequency, Structure) and Elements (Flow), CC BY-SA 3.0',
     'units': 'panel points about the knob centre; y down; each motif upright at angle 0',
     'modal': {'fold': 12, 'groups': [
         group('pupil', circle_of=piece('rings', 'frequency', 114, 0, T), fill=True, layer=0),
         group('eye', circle_of=piece('rings', 'frequency', 94, 1, T), layer=1),
         group('inner', piece('rings', 'frequency', 60, 10, T, 0.012), layer=3),
         group('outline', piece('rings', 'frequency', 60, 11, T, 0.03), layer=4),
-    ]},
-    'string': {'fold': 4, 'groups': [
-        group('pupil', circle_of=piece('clouds', 'position', 129, 0), fill=True, layer=0),
-        group('eye', circle_of=piece('clouds', 'position', 129, 1), layer=1),
-        group('petal_inner', piece('clouds', 'position', 128, 0, 0, 0.02), layer=2),
-        group('petal', piece('clouds', 'position', 111, 0, 0, 0.02), layer=3),
-        group('flower_dot', circle_of=piece('clouds', 'position', 130, 0), fill=True, layer=0),
-        group('flower', piece('clouds', 'position', 112, 9, 0, 0.015), layer=2),
-        group('flower_drop', piece('clouds', 'position', 16, 3, 0, 0.02), layer=3),
-    ], 'single': [
-        group('ring', circle_of=piece('clouds', 'position', 16, 5), layer=4),
     ]},
     'sympathetic': {'fold': 10, 'groups': [
         group('eye_left', circle_of=piece('elements', 'flow', 476, 0), layer=0),

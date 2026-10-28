@@ -45,12 +45,13 @@ FIRST_MANDALA = 21
 REACH = 88                             # a mandala's outermost pixel from the centre
 TOLERANCE = 0.3                        # px: the outlines simplified to what the screen can show
 
-# The motifs lifted from Mutable's panels (tools/extract_motif.py), one per
-# model. The paisley is flipped so its tip points outwards, scaled, and slid out
-# to span PAISLEY_R, with its eye and pupil as circles and a drawn drop, under
-# two wavy rings redrawn with twelve waves so every tip sits in a notch. The
-# other three are scaled whole so their reach is REACH, and the body circle
-# shrinks to sit inside them.
+# The motifs lifted from Mutable's panels (tools/extract_motif.py) for the
+# modal, sympathetic and chords bodies; the string body's is drawn here. The
+# paisley is flipped so its tip points outwards, scaled, and slid out to span
+# PAISLEY_R, with its eye and pupil as circles and a drawn drop, under two wavy
+# rings redrawn with twelve waves so every tip sits in a notch. The traced
+# others are scaled whole so their reach is REACH, and the body circle shrinks
+# to sit inside them.
 MOTIF = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'motif.json')))
 MODELS = ('modal', 'string', 'sympathetic', 'chords')
 PAISLEY_R = (44, 68)                   # the paisley's radial span, px
@@ -89,6 +90,45 @@ def teardrop(cx, cy, r, tip_y, steps=14):
 def wavy_ring(radius):
     return [((radius + RING_WAVE * math.cos(WAVES * t)) * math.sin(t), -(radius + RING_WAVE * math.cos(WAVES * t)) * math.cos(t))
             for t in (2 * math.pi * i / WAVE_POINTS for i in range(WAVE_POINTS))]
+
+
+def petal(r0, r1, width, turn=0.0, point=0.6, steps=12):
+    """A lotus petal from radius r0 to a tip at r1, `width` across at its widest,
+    rounded at the base and pointed at the tip, authored upright then turned."""
+    pts = []
+    for side in (1, -1):
+        rng = range(steps + 1) if side == 1 else range(steps - 1, 0, -1)
+        for i in rng:
+            t = i / steps
+            w = width / 2 * math.sin(math.pi * t) ** point * (1 - 0.35 * t)
+            pts.append((side * w, -(r0 + (r1 - r0) * t)))
+    a = math.radians(turn)
+    c, s = math.cos(a), math.sin(a)
+    return [(x * c - y * s, x * s + y * c) for x, y in pts]
+
+
+def turned(cx, cy, turn):
+    a = math.radians(turn)
+    return cx * math.cos(a) - cy * math.sin(a), cx * math.sin(a) + cy * math.cos(a)
+
+
+def drawn_lotus():
+    """The string body's mandala, drawn rather than traced: a ring, eight
+    petals with smaller petals and eyes inside, eight more petals between
+    them, an outer ring and its dots. Pieces are (name, shape, fill, layer, count)."""
+    fold = 8
+    pieces = [('ring_inner', ('path', circle_path(45)), False, 0, 1),
+              ('petal', ('path', petal(46, 72, 20)), False, 1, fold),
+              ('petal_inner', ('path', petal(49, 64, 10)), False, 2, fold),
+              ('eye', ('circle', 0, -54, 2), True, 3, fold),
+              ('petal_outer', ('path', petal(48, 86, 24, 360 / fold / 2)), False, 4, fold),
+              ('ring_outer', ('path', circle_path(87)), False, 5, 1)]
+    pieces += [('dot', ('circle', *turned(0, -79, 360 / fold / 2), 2), True, 6, fold)]
+    return fold, pieces, 1.0
+
+
+def circle_path(radius, steps=72):
+    return [(radius * math.sin(2 * math.pi * i / steps), -radius * math.cos(2 * math.pi * i / steps)) for i in range(steps)]
 
 
 def reach(groups):
@@ -200,19 +240,21 @@ out.append('     at the centre and turned by the display, which shows one model\
 table = []          # per model: (fold, body scale Q10, [(first, count, layer, fill)])
 next_node = FIRST_MANDALA
 for model in MODELS:
-    spec = MOTIF[model]
-    fold = spec['fold']
+    spec = MOTIF.get(model, {})
+    fold = spec.get('fold', 0)
     groups = []
     if model == 'modal':
         P = {grp['name']: grp for grp in spec['groups']}
         ex, ey, er = paisley_circle_of(P['eye']['circle'])
         er *= 0.8
         drop = teardrop(ex, ey - er - 4.0, 1.3, ey - er - 8.6)
-        pieces = [('pupil', ('circle', ex, ey, 1.2), True, 0), ('eye', ('circle', ex, ey, er), False, 1),
-                  ('drop', ('path', drop), False, 2), ('inner', ('path', paisley(P['inner']['points'])), False, 3),
-                  ('outline', ('path', paisley(P['outline']['points'])), False, 4)]
-        singles = [('ring_inner', ('path', wavy_ring(RING_R)), False, 5), ('ring_outer', ('path', wavy_ring(RING_R + RING_GAP)), False, 5)]
+        pieces = [('pupil', ('circle', ex, ey, 1.2), True, 0, fold), ('eye', ('circle', ex, ey, er), False, 1, fold),
+                  ('drop', ('path', drop), False, 2, fold), ('inner', ('path', paisley(P['inner']['points'])), False, 3, fold),
+                  ('outline', ('path', paisley(P['outline']['points'])), False, 4, fold),
+                  ('ring_inner', ('path', wavy_ring(RING_R)), False, 5, 1), ('ring_outer', ('path', wavy_ring(RING_R + RING_GAP)), False, 5, 1)]
         body = 1.0
+    elif model == 'string':
+        fold, pieces, body = drawn_lotus()
     else:
         low, high = reach(spec['groups'] + spec.get('single', []))
         k = REACH / high
@@ -222,11 +264,10 @@ for model in MODELS:
                 cx, cy, r = grp['circle']
                 return ('circle', cx * k, cy * k, r * k)
             return ('path', [(x * k, y * k) for x, y in grp['points']])
-        pieces = [(grp['name'], scaled_piece(grp), grp['fill'], grp['layer']) for grp in spec['groups']]
-        singles = [(grp['name'], scaled_piece(grp), grp['fill'], grp['layer']) for grp in spec.get('single', [])]
+        pieces = [(grp['name'], scaled_piece(grp), grp['fill'], grp['layer'], fold) for grp in spec['groups']]
+        pieces += [(grp['name'], scaled_piece(grp), grp['fill'], grp['layer'], 1) for grp in spec.get('single', [])]
     out.append(f'<!-- {model}: {fold}-fold -->')
-    for name, shape, fill, layer in pieces + singles:
-        count = fold if (name, shape, fill, layer) in pieces else 1
+    for name, shape, fill, layer, count in pieces:
         if shape[0] == 'path':
             xs, ys = [x for x, _ in shape[1]], [y for _, y in shape[1]]
             extent = max(max(xs) - min(xs), max(ys) - min(ys))
