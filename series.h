@@ -10,7 +10,7 @@
 namespace mi_rings {
 const unsigned kMaxModes = 24;
 const unsigned kModeChoices = 4;
-const unsigned kModeCounts[kModeChoices] = {1, 3, 8, 24};  // the Modes enum: bare, lean, full, lush
+const unsigned kModeCounts[kModeChoices] = {1, 3, 8, 24};  // the Size enum: bare, lean, full, lush
 
 // Interpolated read of a 257-entry table over a normalized Q31 control.
 inline opxy::i32 lookup(const opxy::i32* table, opxy::i32 control) {
@@ -36,13 +36,13 @@ inline opxy::i32 cosine(opxy::u32 phase) {
     }
 }
 
-// The Modes enum choice from its Q31 word (stock stores the middle of a choice).
+// The Size enum choice from its Q31 word (stock stores the middle of a choice).
 inline opxy::u32 mode_choice(opxy::i32 control) {
     const opxy::u32 c = control < 0 ? 0u : static_cast<opxy::u32>(control);
     const opxy::u32 choice = (c >> 16) * kModeChoices >> 15;
     return choice >= kModeChoices ? kModeChoices - 1 : choice;
 }
-// On the sympathetic models Modes is how many strings ring, 1 to 4: the note
+// On the sympathetic models Size is how many strings ring, 1 to 4: the note
 // and up to three more, as Rings trades strings for voices.
 inline opxy::u32 string_count(opxy::i32 control) { return mode_choice(control) + 1; }
 // The modal body's partial count.

@@ -163,7 +163,7 @@ inline void display_reset(DisplayState& state) {
 }
 
 inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& frame) {
-    const char* const titles[8] = {"Struct", "Bright", "Damping", "Position", "Model", "Strike", "Modes", "Strike"};
+    const char* const titles[8] = {"Struct", "Bright", "Damping", "Position", "Model", "Strike", "Size", "Strike"};
     char values[8][header_capacity];
     for (u32 i = 0; i < 8; ++i) header_amount(values[i], header_capacity, input.slots[i]);
     static const char* const kModelNames[4] = {"mdal", "strn", "symp", "chrd"};
@@ -172,7 +172,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const u32 modes = choice4(input.slots[6]);
     opxy::draw::copy(values[4], header_capacity, kModelNames[model]);
     opxy::draw::copy(values[6], header_capacity, kModeNames[modes]);
-    const opxy::u8 slots[2][4] = {{0, 1, 2, 3}, {4, 5, 2, 6}};     // page 2: Model, Strike, Damping shared, Modes
+    const opxy::u8 slots[2][4] = {{0, 1, 2, 3}, {4, 5, 2, 6}};     // page 2: Model, Strike, Damping shared, Size
     page_header(state.header, input, frame, titles, values, kHeaderNode, slots);
 
     const i32 structure = clamp(input.slots[0], 0, opxy::q31::maximum);

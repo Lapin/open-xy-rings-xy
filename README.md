@@ -28,11 +28,11 @@ Two pages of four encoders; a press of any encoder switches pages.
 | Position | The strike or pluck point: 0 rings every partial, 100 the middle. On a string it also sets the pickup's comb and the pluck's length |
 | Model (page 2, with Struct) | mdal, strn, symp, chrd: modal, string, sympathetic strings, chords |
 | Strike (page 2, with Bright) | The exciter's grain: on the modal body 0 is Rings' single pulse and higher a noise burst of up to 46 ms at the same energy; on the strings it drags the pluck out to a scrape up to eight times as long |
-| Modes (page 2, with Position) | Modal: how many partials ring: bare 1, a sine, lean 3, full 8, lush 24. Lush also keeps its top partials ringing at any Bright, where Rings would let them die at once; partials added while a note rings start from the fundamental's level, rolled off by 1/n². String: unison copies of the string, 1 to 4, a few cents apart, a thickening that is not in Rings. Sympathetic and chords: how many strings, 1 to 4, the note and up to three more. Both are Rings' polyphony trade; fewer cost less CPU |
+| Size (page 2, with Position) | Modal: how many partials ring: bare 1, a sine, lean 3, full 8, lush 24. Lush also keeps its top partials ringing at any Bright, where Rings would let them die at once; partials added while a note rings start from the fundamental's level, rolled off by 1/n². String: unison copies of the string, 1 to 4, a few cents apart, a thickening that is not in Rings. Sympathetic and chords: how many strings, 1 to 4, the note and up to three more. Both are Rings' polyphony trade; fewer cost less CPU |
 
 The screen shows both pages in the shared header. Either side sit the Rings
 panel's LEDs: the four models on the left (rings, bars, waves, a chord stack),
-the four Modes steps on the right (one to four dots), the chosen one lit and
+the four Size steps on the right (one to four dots), the chosen one lit and
 haloed for a second when it changes. In the middle is the body: a circle with
 a dot at its centre, lit inside by Bright: rings for the modal body; a
 line across the string body whose seven bars rise, up and down, into a loose
@@ -141,7 +141,7 @@ the plucker's 4,000 at the start of a note. Seven held notes on the
 sympathetic model at three strings froze the audio engine before the copies
 were made cheap; those counts are from the disassembly, not a measurement,
 which the catalog requires. The voice holds four 2048-sample loops, so the
-machine declares eight voices. Turn Modes down on busy projects until it is
+machine declares eight voices. Turn Size down on busy projects until it is
 measured.
 
 ## Hardware and publication

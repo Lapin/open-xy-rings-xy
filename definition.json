@@ -77,8 +77,8 @@
       "display": "percent"
     },
     {
-      "id": "modes",
-      "label": "Modes",
+      "id": "size",
+      "label": "Size",
       "control": 3,
       "default": 0.375,
       "mapping": {
@@ -100,7 +100,7 @@
       "damping": 0.6,
       "position": 0.25,
       "model": 0.125,
-      "modes": 0.375,
+      "size": 0.375,
       "strike": 0
     },
     "Bell": {
@@ -109,7 +109,7 @@
       "damping": 0.75,
       "position": 0.2,
       "model": 0.125,
-      "modes": 0.625,
+      "size": 0.625,
       "strike": 0
     },
     "Brushed": {
@@ -118,7 +118,7 @@
       "damping": 0.5,
       "position": 0.1,
       "model": 0.125,
-      "modes": 0.375,
+      "size": 0.375,
       "strike": 0.7
     },
     "Pluck": {
@@ -127,7 +127,7 @@
       "damping": 0.5,
       "position": 0.3,
       "model": 0.375,
-      "modes": 0.375,
+      "size": 0.375,
       "strike": 0
     },
     "Sympathy": {
@@ -136,7 +136,7 @@
       "damping": 0.7,
       "position": 0.25,
       "model": 0.625,
-      "modes": 0.625,
+      "size": 0.625,
       "strike": 0
     },
     "Chord": {
@@ -145,7 +145,7 @@
       "damping": 0.75,
       "position": 0.3,
       "model": 0.875,
-      "modes": 0.875,
+      "size": 0.875,
       "strike": 0
     }
   },

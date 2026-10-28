@@ -120,7 +120,7 @@ void tune(Voice& voice, i32 structure, i32 brightness, i32 damping, i32 position
     i32 harmonic = 0;  // Q28
     // A partial that joins a ringing note starts from the fundamental's state,
     // rolled off by 1/n^2 as the strike's two-pole low-pass would have left
-    // it, so a turn up of Modes is heard before the next strike. Rings leaves
+    // it, so a turn up of Size is heard before the next strike. Rings leaves
     // a new mode silent until it is struck, and the top ringing partial is
     // no reference: at Bright 50 it has died within the first tenth of a second.
     i32 seed_x = 0, seed_y = 0;
