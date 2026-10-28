@@ -2,22 +2,27 @@
 """Generates panel.svg.fragment: the two-page header block, the Rings-style
 model and modes LEDs with their icons either side, and the nodes the display
 animates: the body circle with its inner rings and strings, the pluck point
-and ripples, and the Rings panel's mandala of paisleys, wavy rings and dots
-that turns around the body.
+and ripples, and four mandalas lifted from Mutable's panels, one per model,
+that turn around the body. Writes mandala.h beside the fragment.
 
 Only forms seen on hardware: rect, circle, path of M/L/Z, text; at most two
-decimals; explicit paint on every leaf; bound nodes parked off screen.
+decimals; explicit paint on every leaf. The body's nodes are parked off screen;
+the mandalas' many pieces carry no authored transform, to fit the artwork in
+the 64 KB the SDK allows, and the first frame places or hides every one.
 """
 import json
 import math
 import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from panel_paths import simplify  # noqa: E402
 
 ID = 'mi_rings'
 CX, CY = 240, 130                      # the body's centre
 BODY = 40                              # the body circle's radius
 INNER = [11, 21, 31]                   # the inner rings
 STRING_HALF = 36                       # half a string's authored length
-PAISLEYS = 12
 LED_X = (30, 450)                      # model LEDs left, modes LEDs right
 LED_Y = (82, 114, 146, 178)
 LED_R = 8
@@ -27,37 +32,32 @@ FONT = 'font-family="UniversNextPro-Light"'
 ICON = '#8A8A8A'
 PARKED = 'transform="matrix(1 0 0 1 640 320)"'
 
-# Node map, shared with display.h.
+# Node map, shared with display.h; the mandalas' nodes are laid out below and
+# written to mandala.h for the display.
 BODY_NODE = 8
 FIRST_INNER = 9                        # 9..11
 CENTRE = 12
 STRIKE = 13
 FIRST_RIPPLE, RIPPLES = 14, 3          # 14..16
 FIRST_STRING, STRINGS = 17, 4          # 17..20
-FIRST_OUTLINE = 21                     # 21..32   the paisleys' outlines
-FIRST_INNER_DROP = 33                  # 33..44   their inner teardrops
-FIRST_EYE = 45                         # 45..56   their eyes
-FIRST_PUPIL = 57                       # 57..68   their pupils
-FIRST_DROP = 69                        # 69..80   the small drops
-RING_INNER, RING_OUTER = 81, 82        # the wavy rings
-FIRST_DOT_RING = 83                    # 83..94   the circled dots' rings
-FIRST_DOT = 95                         # 95..106  and dots
-FIRST_MODEL_LED = 107                  # 107..110
-FIRST_MODES_LED = 111                  # 111..114
-HALO = 115                             # 115 model, 116 modes
-NODES = HALO + 2
+FIRST_MANDALA = 21
+REACH = 88                             # a mandala's outermost pixel from the centre
+TOLERANCE = 0.4
 
-# The motif lifted from the Rings panel (tools/extract_motif.py). The paisley is
-# flipped so its tip points outwards, scaled, and slid out to span PAISLEY_R;
-# its eye and pupil become circles. The wavy rings are redrawn with twelve
-# waves so every paisley tip sits in a notch, and the circled dots ride beyond.
+# The motifs lifted from Mutable's panels (tools/extract_motif.py), one per
+# model. The paisley is flipped so its tip points outwards, scaled, and slid out
+# to span PAISLEY_R, with its eye and pupil as circles and a drawn drop, under
+# two wavy rings redrawn with twelve waves so every tip sits in a notch. The
+# other three are scaled whole so their reach is REACH, and the body circle
+# shrinks to sit inside them.
 MOTIF = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'motif.json')))
+MODELS = ('modal', 'string', 'sympathetic', 'chords')
 PAISLEY_R = (44, 68)                   # the paisley's radial span, px
 RING_R, RING_WAVE, RING_GAP = 73.5, 3.5, 4   # the wavy rings: mean radius, wave height, spacing
-DOT_R, DOT_RING = 85, 3.2              # the circled dots' radius from the centre and their ring's radius
 WAVES, WAVE_POINTS = 12, 144
 
-_outline_y = [y for _, y in MOTIF['paisley']['outline']]
+_outline = [g for g in MOTIF['modal']['groups'] if g['name'] == 'outline'][0]['points']
+_outline_y = [y for _, y in _outline]
 _flip = min(_outline_y) + max(_outline_y)                       # y -> _flip - y mirrors the paisley radially
 _scale = (PAISLEY_R[1] - PAISLEY_R[0]) / (max(_outline_y) - min(_outline_y))
 _slide = PAISLEY_R[0] + max(_outline_y) * _scale                # outwards, so the base lands at PAISLEY_R[0]
@@ -68,12 +68,11 @@ def paisley(points):
     return [(x * _scale, (_flip - y) * _scale - _slide) for x, y in points]
 
 
-def paisley_circle(points):
-    """A small ring of the motif as a circle: centre and radius in screen pixels."""
-    local = paisley(points)
-    cx = sum(x for x, _ in local) / len(local)
-    cy = sum(y for _, y in local) / len(local)
-    return cx, cy, sum(math.hypot(x - cx, y - cy) for x, y in local) / len(local)
+def paisley_circle_of(circle):
+    """A circle of the motif (centre, radius in panel units) placed like the paisley."""
+    cx, cy, r = circle
+    (sx, sy), = paisley([(cx, cy)])
+    return sx, sy, r * _scale
 
 
 def teardrop(cx, cy, r, tip_y, steps=14):
@@ -91,13 +90,28 @@ def wavy_ring(radius):
             for t in (2 * math.pi * i / WAVE_POINTS for i in range(WAVE_POINTS))]
 
 
-def num(v):
-    s = f'{v:.2f}'.rstrip('0').rstrip('.')
+def reach(groups):
+    """The radial span of a motif's pieces, in its own units."""
+    low, high = 1e9, 0
+    for grp in groups:
+        if 'circle' in grp:
+            cx, cy, r = grp['circle']
+            d = math.hypot(cx, cy)
+            low, high = min(low, d - r), max(high, d + r)
+        else:
+            for x, y in grp['points']:
+                d = math.hypot(x, y)
+                low, high = min(low, d), max(high, d)
+    return low, high
+
+
+def num(v, decimals=2):
+    s = f'{v:.{decimals}f}'.rstrip('0').rstrip('.')
     return '0' if s in ('-0', '') else s
 
 
-def poly(points, stroke, width=1, fill='none', attrs=''):
-    d = 'M' + ' L'.join(f'{num(x)},{num(y)}' for x, y in points) + ' Z'
+def poly(points, stroke, width=1, fill='none', attrs='', decimals=2):
+    d = 'M' + ' L'.join(f'{num(x, decimals)},{num(y, decimals)}' for x, y in points) + ' Z'
     return f'<path{attrs} d="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{width}"/>'
 
 
@@ -180,30 +194,73 @@ for i in range(RIPPLES):
     out.append(circle_node(FIRST_RIPPLE + i, 40))
 for i in range(STRINGS):
     out.append(node(FIRST_STRING + i, [(-STRING_HALF, -0.4), (STRING_HALF, -0.4), (STRING_HALF, 0.4), (-STRING_HALF, 0.4)], width=0.5))
-out.append('<!-- The mandala, lifted from the Rings panel: twelve paisleys, tips outwards, two wavy rings')
-out.append('     with a notch for every tip, and twelve circled dots beyond; every piece authored upright at')
-out.append('     the centre and turned by the display. -->')
-P = MOTIF['paisley']
-for first, key in ((FIRST_OUTLINE, 'outline'), (FIRST_INNER_DROP, 'inner')):
-    for i in range(PAISLEYS):
-        out.append(node(first + i, paisley(P[key]), width=0.8))
-# The eye sits clear of the inner teardrop, the drop clear of both, the pupil in the eye.
-ex, ey, er = paisley_circle(P['eye'])
-er *= 0.8
-px, py, pr = ex, ey, 1.2
-drop = teardrop(ex, ey - er - 4.0, 1.3, ey - er - 8.6)
-for i in range(PAISLEYS):
-    out.append(node(FIRST_DROP + i, drop, width=0.8))
-for i in range(PAISLEYS):
-    out.append(f'<circle id="{ID}_node_{FIRST_EYE + i}" {PARKED} cx="{num(ex)}" cy="{num(ey)}" r="{num(er)}" fill="none" stroke="#808080" stroke-width="0.8"/>')
-for i in range(PAISLEYS):
-    out.append(f'<circle id="{ID}_node_{FIRST_PUPIL + i}" {PARKED} cx="{num(px)}" cy="{num(py)}" r="{num(pr)}" fill="#808080" stroke="#808080" stroke-width="0.5"/>')
-out.append(node(RING_INNER, wavy_ring(RING_R), width=0.8))
-out.append(node(RING_OUTER, wavy_ring(RING_R + RING_GAP), width=0.8))
-for i in range(PAISLEYS):
-    out.append(f'<circle id="{ID}_node_{FIRST_DOT_RING + i}" {PARKED} cx="0" cy="{num(-DOT_R)}" r="{num(DOT_RING)}" fill="none" stroke="#808080" stroke-width="0.8"/>')
-for i in range(PAISLEYS):
-    out.append(f'<circle id="{ID}_node_{FIRST_DOT + i}" {PARKED} cx="0" cy="{num(-DOT_R)}" r="1.2" fill="#808080" stroke="#808080" stroke-width="0.5"/>')
+out.append('<!-- The mandalas, one per model, lifted from Mutable\'s panels: every piece authored upright')
+out.append('     at the centre and turned by the display, which shows one model\'s set at a time. -->')
+table = []          # per model: (fold, body scale Q10, [(first, count, layer, fill)])
+next_node = FIRST_MANDALA
+for model in MODELS:
+    spec = MOTIF[model]
+    fold = spec['fold']
+    groups = []
+    if model == 'modal':
+        P = {grp['name']: grp for grp in spec['groups']}
+        ex, ey, er = paisley_circle_of(P['eye']['circle'])
+        er *= 0.8
+        drop = teardrop(ex, ey - er - 4.0, 1.3, ey - er - 8.6)
+        pieces = [('pupil', ('circle', ex, ey, 1.2), True, 0), ('eye', ('circle', ex, ey, er), False, 1),
+                  ('drop', ('path', drop), False, 2), ('inner', ('path', paisley(P['inner']['points'])), False, 3),
+                  ('outline', ('path', paisley(P['outline']['points'])), False, 4)]
+        singles = [('ring_inner', ('path', wavy_ring(RING_R)), False, 5), ('ring_outer', ('path', wavy_ring(RING_R + RING_GAP)), False, 5)]
+        body = 1.0
+    else:
+        low, high = reach(spec['groups'] + spec.get('single', []))
+        k = REACH / high
+        body = min(1.0, (low * k - 4) / BODY)
+        def scaled_piece(grp):
+            if 'circle' in grp:
+                cx, cy, r = grp['circle']
+                return ('circle', cx * k, cy * k, r * k)
+            return ('path', [(x * k, y * k) for x, y in grp['points']])
+        pieces = [(grp['name'], scaled_piece(grp), grp['fill'], grp['layer']) for grp in spec['groups']]
+        singles = [(grp['name'], scaled_piece(grp), grp['fill'], grp['layer']) for grp in spec.get('single', [])]
+    out.append(f'<!-- {model}: {fold}-fold -->')
+    for name, shape, fill, layer in pieces + singles:
+        count = fold if (name, shape, fill, layer) in pieces else 1
+        if shape[0] == 'path':
+            xs, ys = [x for x, _ in shape[1]], [y for _, y in shape[1]]
+            extent = max(max(xs) - min(xs), max(ys) - min(ys))
+            shape = ('path', simplify(shape[1], min(TOLERANCE, extent / 24)))   # small pieces keep their curves
+        groups.append((next_node, count, layer, fill))
+        for i in range(count):
+            n = next_node + i
+            paint = ('#808080', '#808080') if fill else ('none', '#808080')
+            if shape[0] == 'circle':
+                _, cx, cy, r = shape
+                out.append(f'<circle id="{ID}_node_{n}" cx="{num(cx, 1)}" cy="{num(cy, 1)}" r="{num(r, 1)}" fill="{paint[0]}" stroke="{paint[1]}" stroke-width="{".5" if fill else ".8"}"/>')
+            else:
+                out.append(poly(shape[1], '#808080', '.8', fill=paint[0], attrs=f' id="{ID}_node_{n}"', decimals=1))
+        next_node += count
+    table.append((fold, round(body * 1024), groups))
+FIRST_MODEL_LED = next_node            # four model LEDs
+FIRST_MODES_LED = next_node + 4        # four modes LEDs
+HALO = next_node + 8                   # model, modes
+NODES = HALO + 2
+assert NODES <= 256, NODES
+
+header = ['// Generated by tools/gen_panel.py from tools/motif.json: the mandalas\' nodes.',
+          '#pragma once', '#include <opxy/types.hpp>', '', 'namespace mi_rings {',
+          f'const opxy::u32 kFirstMandala = {FIRST_MANDALA}, kFirstModelLed = {FIRST_MODEL_LED}, kFirstModesLed = {FIRST_MODES_LED}, kHaloNode = {HALO}, kNodes = {NODES};',
+          'const opxy::u32 kMandalaGroups = %d;' % max(len(t[2]) for t in table),
+          'struct MandalaGroup { opxy::u16 first; opxy::u8 count, layer, fill; };',
+          'struct Mandala { opxy::u32 fold; opxy::i32 body_scale; MandalaGroup groups[%d]; };' % max(len(t[2]) for t in table),
+          'const Mandala kMandalas[4] = {']
+for (fold, body, groups), model in zip(table, MODELS):
+    rows = ', '.join('{%d, %d, %d, %d}' % (f, c, l, int(fi)) for f, c, l, fi in groups)
+    pad = ', '.join('{0, 0, 0, 0}' for _ in range(max(len(t[2]) for t in table) - len(groups)))
+    header.append(f'    {{{fold}, {body}, {{{rows}{", " + pad if pad else ""}}}}},  // {model}')
+header += ['};', '}', '']
+open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'mandala.h'), 'w').write('\n'.join(header))
+
 out.append('<!-- The LEDs and the halo that marks a change. -->')
 for i in range(4):
     out.append(circle_node(FIRST_MODEL_LED + i, LED_R, stroke='#808080', width=1.2))

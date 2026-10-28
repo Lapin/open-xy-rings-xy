@@ -4,8 +4,12 @@
 // petals that turns slowly, kicks on every note and eases back as the note
 // fades. Structure adds petals, Bright lights the body's inner rings or strings,
 // Damping sets how long the kick lasts, Position places the pluck point and the
-// ripples that spread from it.
+// ripples that spread from it. Each model has its own mandala, lifted from
+// Mutable's panels: Rings' Frequency paisleys for the modal body, Elements'
+// Mallet and Flow knobs for the string and sympathetic bodies, Rings' Structure
+// knob for the chords.
 #include "display.h"
+#include "core.h"
 #include "series.h"
 
 namespace mi_rings {
@@ -124,9 +128,13 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 bright = 2 + (brightness >> 27);                           // 2..17: Bright lights the inside
     const i32 glow = flash * 5 >> 10;                                    // 0..5 added by a note
 
-    // The body: its circle swells a little with a note; the inside is rings for
-    // the modal body and strings for the string bodies, lit by Bright.
-    const i32 swell = unit + (flash * 40 >> 10);
+    // The body: its circle, shrunk to sit inside the model's mandala, swells a
+    // little with a note; the inside is rings for the modal body and strings
+    // for the string bodies, lit by Bright.
+    const Mandala& mandala = kMandalas[model];
+    const i32 body = mandala.body_scale;                                 // Q10
+    const i32 swell = (unit + (flash * 40 >> 10)) * body >> 10;
+    const i32 body_radius = kBodyRadius * body >> 10;
     place(frame, kBodyNode, kCentreX, kCentreY, swell, static_cast<u32>(clamp(8 + glow, 1, 15)), stroke);
     place(frame, kCentreNode, kCentreX, kCentreY, unit, static_cast<u32>(clamp(9 + glow, 1, 15)), fill_and_stroke);
     const i32 inside = clamp(bright + glow, 1, 15);
@@ -137,13 +145,14 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     for (u32 i = 0; i < kStrings4; ++i) {
         const u32 node = kFirstString + i;
         if (model == 0 || (model == 1 && i > 0)) { hide(frame, node); continue; }
-        const i32 y = model == 1 ? 0 : (static_cast<i32>(i) * 12 - 18) * unit;
-        place(frame, node, kCentreX, kCentreY + y, model == 1 ? unit + unit / 10 : unit, static_cast<u32>(inside), stroke);
+        const i32 y = (model == 1 ? 0 : (static_cast<i32>(i) * 12 - 18) * unit) * body >> 10;
+        const i32 length = (model == 1 ? unit + unit / 10 : unit) * body >> 10;
+        place(frame, node, kCentreX, kCentreY + y, length, static_cast<u32>(inside), stroke);
     }
 
     // The pluck point: Position runs along the body's diameter from the left
     // edge (0) to the right (1), through the centre at 0.5. Strike fattens it on the modal body.
-    const i32 strike_x = kCentreX - kBodyRadius + ((position >> 16) * 80 >> 5);
+    const i32 strike_x = kCentreX - body_radius + ((((position >> 16) * 80 >> 5) * body) >> 10);
     const i32 strike_scale = unit + (model == 0 ? (strike >> 21) * 2 : 0) + flash;
     place(frame, kStrikeNode, strike_x, kCentreY, clamp(strike_scale, unit / 2, 2 * unit),
           static_cast<u32>(8 + (flash * 7 >> 10)), fill_and_stroke);
@@ -153,22 +162,21 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         const u32 node = kFirstRipple + i;
         const i32 progress = state.ripple_age[i] * rate >> 10;  // Q10, 1 at the end of life
         if (input.reduced_motion || progress <= 0 || progress >= unit) { hide(frame, node); continue; }
-        const i32 radius = 4 * unit + (progress * 36);           // 4..40 px, to the body's edge
+        const i32 radius = (4 * unit + (progress * 36)) * body >> 10;   // 4..40 px, to the body's edge
         const i32 shade = clamp(((unit - progress) * (4 + bright)) >> 10, 0, 15);
         if (!shade) { hide(frame, node); continue; }
         place(frame, node, strike_x, kCentreY, clamp(radius / kAuthoredRipple, unit / 8, 2 * unit), static_cast<u32>(shade), stroke);
     }
 
-    // The mandala, lifted from the Rings panel, in seven layers from the smallest
-    // piece out: pupils, eyes, drops, inner teardrops, outlines, the wavy rings,
-    // the circled dots. Structure brings the layers in in that order, and a note
-    // lights them in that order too, a ripple from the centre out over the
-    // kick's life. Each recent note has its own ripple, so a new note never
-    // cancels one in flight. All share the turn; the dots turn the other way.
+    // The mandala: the model's own, lifted from Mutable's panels, its pieces in
+    // layers from the smallest out. Structure brings the layers in in that
+    // order, and a note lights them in that order too, a ripple from the centre
+    // out over the kick's life. Each recent note has its own ripple, so a new
+    // note never cancels one in flight. The other models' pieces stay hidden.
     const i32 detail = structure >> 21;                                  // 0..1023
-    i32 layer[7];
-    for (u32 k = 0; k < 7; ++k) {
-        const i32 start = static_cast<i32>(k) * 150 - 130;              // pupils always, dots from 770
+    i32 layer[kLayers];
+    for (u32 k = 0; k < kLayers; ++k) {
+        const i32 start = static_cast<i32>(k) * 150 - 130;              // the first layer always
         const i32 shown = k == 0 ? unit : fade(detail, start, start + 160);
         i32 pulse = 0;
         for (u32 w = 0; w < kWaves; ++w) {
@@ -180,21 +188,18 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         }
         layer[k] = (6 * shown + 7 * pulse) >> 10;
     }
-    for (u32 i = 0; i < kPaisleys; ++i) {
-        const i32 tenths = state.angle + static_cast<i32>(i) * 300;
-        petal(frame, kFirstPupil + i, tenths, layer[0], fill_and_stroke);
-        petal(frame, kFirstEye + i, tenths, layer[1]);
-        petal(frame, kFirstDrop + i, tenths, layer[2]);
-        petal(frame, kFirstInnerDrop + i, tenths, layer[3]);
-        petal(frame, kFirstOutline + i, tenths, layer[4]);
-    }
-    petal(frame, kRingInner, state.angle, layer[5]);
-    petal(frame, kRingOuter, state.angle, layer[5]);
-    const i32 counter = 3600 - (state.angle * 3 >> 2);
-    for (u32 i = 0; i < kPaisleys; ++i) {
-        const i32 tenths = counter + static_cast<i32>(i) * 300;
-        petal(frame, kFirstDotRing + i, tenths, layer[6]);
-        petal(frame, kFirstDot + i, tenths, layer[6], fill_and_stroke);
+    for (u32 m = 0; m < kModels; ++m) {
+        const Mandala& set = kMandalas[m];
+        for (u32 g = 0; g < kMandalaGroups; ++g) {
+            const MandalaGroup& group = set.groups[g];
+            if (!group.count) break;
+            const i32 step = group.count > 1 ? 3600 / static_cast<i32>(group.count) : 0;
+            for (u32 i = 0; i < group.count; ++i) {
+                if (m != model) { hide(frame, group.first + i); continue; }
+                petal(frame, group.first + i, state.angle + static_cast<i32>(i) * step, layer[group.layer],
+                      group.fill ? fill_and_stroke : stroke);
+            }
+        }
     }
 
     // The LEDs: the chosen one lit, a halo on it while the change is fresh.

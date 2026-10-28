@@ -1,44 +1,86 @@
 #!/usr/bin/env python3
-"""Lifts the Frequency mandala's motif from Mutable Instruments' Rings panel
-(rings/hardware_design/panel/rings.ai in github.com/pichenettes/eurorack,
-CC BY-SA 3.0) into motif.json: one upright paisley, the two wavy rings and a
-circled dot, as polylines in panel points about the knob's centre.
+"""Lifts one motif per model from Mutable Instruments' panel artwork
+(hardware_design/panel/<module>.ai in github.com/pichenettes/eurorack,
+CC BY-SA 3.0) into motif.json: polylines in panel points about the knob's
+centre, each motif upright at angle 0, repeated `fold` times by the display.
 
-    pdftocairo -svg rings.ai rings.svg
-    python3 tools/extract_motif.py rings.svg > tools/motif.json
+    pdftocairo -svg rings.ai rings.svg; pdftocairo -svg elements.ai elements.svg
+    python3 tools/extract_motif.py <folder with rings.svg and elements.svg> > tools/motif.json
+
+  modal        Rings, Frequency knob: a paisley, the wavy rings redrawn by gen_panel
+  string       Elements, Mallet knob: a toothed arch and a spike inside a sun of spikes
+  sympathetic  Elements, Flow knob: a spike flanked by two teardrops with eyes
+  chords       Rings, Structure knob: nested rounded triangles under a beaded arc,
+               with a flower, leaves and drops
 """
-import json, math, re, sys
+import json, math, os, re, sys
 import panel_paths as pp
 
-svg = open(sys.argv[1]).read()
-paths = [m.group(2) for m in re.finditer(r'<path([^>]*) d="([^"]*)"', svg)]
+folder = sys.argv[1]
+svgs = {name: open(os.path.join(folder, name + '.svg')).read() for name in ('rings', 'elements')}
+paths = {name: [m.group(2) for m in re.finditer(r'<path([^>]*) d="([^"]*)"', svg)] for name, svg in svgs.items()}
+CENTRES = {'frequency': (53.83, 94.62), 'structure': (147.06, 94.44), 'mallet': (229.09, 136.33), 'flow': (135.85, 135.85)}
 
 
-def piece(index, sub, turn=0.0, tolerance=0.05):
-    pts = pp.subpaths(paths[index])[sub][1]
-    local = [(x - pp.CENTRE[0], y - pp.CENTRE[1]) for x, y in pts]
-    local = pp.simplify(local, tolerance)
+def piece(panel, knob, index, sub, turn=0.0, tolerance=0.05):
+    pts = pp.subpaths(paths[panel][index])[sub][1]
+    cx, cy = CENTRES[knob]
+    local = pp.simplify([(x - cx, y - cy) for x, y in pts], tolerance)
     a = math.radians(turn)
     c, s = math.cos(a), math.sin(a)
     return [(round(x * c - y * s, 3), round(x * s + y * c, 3)) for x, y in local]
 
 
-# The paisley at 350 degrees, turned 10 degrees clockwise to upright.
-TURN = 10.0
+def circle(points):
+    cx = sum(x for x, _ in points) / len(points)
+    cy = sum(y for _, y in points) / len(points)
+    return [round(cx, 3), round(cy, 3), round(sum(math.hypot(x - cx, y - cy) for x, y in points) / len(points), 3)]
+
+
+def group(name, points=None, circle_of=None, fill=False, layer=0):
+    g = {'name': name, 'layer': layer, 'fill': fill}
+    if circle_of is not None: g['circle'] = circle(circle_of)
+    else: g['points'] = points
+    return g
+
+
+T = 10.0  # the paisley at 350 degrees, turned to upright
 motif = {
-    'source': 'Mutable Instruments Rings panel, Frequency mandala (CC BY-SA 3.0)',
-    'units': 'panel points about the knob centre; y down; the paisley points up',
-    'paisley': {
-        'outline': piece(60, 11, TURN, 0.03),
-        'inner': piece(60, 10, TURN, 0.012),
-        'eye': piece(94, 1, TURN),
-        'pupil': piece(114, 0, TURN),
-        'drop': piece(95, 1, TURN, 0.03),
-        'beads': [piece(60, k, TURN, 0.03) for k in range(10)],
-    },
-    'ring_inner': piece(25, 0, 0, 0.08),
-    'ring_outer': piece(6, 0, 0, 0.08),
-    'dot_ring': piece(18, 1, 0),
-    'dot': piece(37, 0, 0),
+    'source': 'Mutable Instruments panel artwork: Rings (Frequency, Structure) and Elements (Mallet, Flow), CC BY-SA 3.0',
+    'units': 'panel points about the knob centre; y down; each motif upright at angle 0',
+    'modal': {'fold': 12, 'groups': [
+        group('pupil', circle_of=piece('rings', 'frequency', 114, 0, T), fill=True, layer=0),
+        group('eye', circle_of=piece('rings', 'frequency', 94, 1, T), layer=1),
+        group('inner', piece('rings', 'frequency', 60, 10, T, 0.012), layer=3),
+        group('outline', piece('rings', 'frequency', 60, 11, T, 0.03), layer=4),
+    ]},
+    'string': {'fold': 16, 'groups': [
+        group('spike', piece('elements', 'mallet', 211, 0), layer=0),
+        group('arch', piece('elements', 'mallet', 209, 14), layer=1),
+        group('leaf_left', piece('elements', 'mallet', 196, 10, 0, 0.015), layer=2),
+        group('leaf_right', piece('elements', 'mallet', 196, 9, 0, 0.015), layer=2),
+    ], 'single': [
+        group('sun', piece('elements', 'mallet', 196, 20, 0, 0.3), layer=4),
+    ]},
+    'sympathetic': {'fold': 10, 'groups': [
+        group('eye_left', circle_of=piece('elements', 'flow', 476, 0), layer=0),
+        group('eye_right', circle_of=piece('elements', 'flow', 487, 0), layer=0),
+        group('drop_left', piece('elements', 'flow', 436, 1), layer=1),
+        group('drop_right', piece('elements', 'flow', 447, 1), layer=1),
+        group('spike', piece('elements', 'flow', 332, 1), layer=3),
+    ]},
+    'chords': {'fold': 4, 'groups': [
+        group('triangle_core', piece('rings', 'structure', 192, 1), layer=0),
+        group('triangle_mid', piece('rings', 'structure', 140, 1), layer=1),
+        group('triangle', piece('rings', 'structure', 116, 136), layer=2),
+        group('flower_dot', circle_of=piece('rings', 'structure', 196, 0), fill=True, layer=0),
+        group('flower_ring', circle_of=piece('rings', 'structure', 148, 1), layer=1),
+        group('flower', piece('rings', 'structure', 116, 124), layer=2),
+        group('drop_left', piece('rings', 'structure', 116, 68, 0, 0.015), layer=3),
+        group('drop_right', piece('rings', 'structure', 116, 103, 0, 0.015), layer=3),
+        group('leaf_left', piece('rings', 'structure', 116, 113, 0, 0.015), layer=4),
+        group('leaf_right', piece('rings', 'structure', 116, 115, 0, 0.015), layer=4),
+        group('arc', piece('rings', 'structure', 116, 130, 0, 0.04), layer=5),
+    ]},
 }
 json.dump(motif, sys.stdout, separators=(',', ':'))

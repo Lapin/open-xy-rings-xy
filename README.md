@@ -34,15 +34,20 @@ panel's LEDs: the four models on the left (rings, bars, waves, a chord stack),
 the four Modes steps on the right (one to four dots), the chosen one lit and
 haloed for a second when it changes. In the middle is the body: a circle with
 a dot at its centre, holding three inner rings for the modal body or the
-strings of the string bodies, lit by Bright. Around it turns the mandala from
-the Rings panel's Frequency knob: twelve paisleys, two wavy rings and twelve
-circled dots, lifted from Mutable's panel file into straight-line outlines.
-It turns slowly at rest, is kicked by every note and eases back over
-Damping's time; Structure brings its detail in, the paisleys' outlines first,
-then their inner teardrops, then the eyes, then the wavy rings, and last the
-dots turning the other way. Position places the pluck point on the body's
-diameter and a note sends ripples out from it. Reduced motion holds the
-mandala still.
+strings of the string bodies, lit by Bright. Around it turns a mandala, a
+different one for each model, lifted from Mutable's panel files into
+straight-line outlines: the modal body has the Rings panel's Frequency knob,
+twelve paisleys under two wavy rings; the string body has the Elements
+panel's Mallet knob, sixteen toothed arches with spikes and leaves inside a
+sun; the sympathetic body has Elements' Flow knob, ten spikes each flanked
+by two drops with eyes; the chords body has Rings' Structure knob, four nested
+triangles under beaded arcs, with flowers between. The body circle shrinks to
+sit inside the denser ones. The mandala turns slowly at rest, is kicked by
+every note and eases back over Damping's time; Structure brings its pieces in
+from the smallest out, and every note lights them in that order, a ripple from
+the centre out, each recent note with its own. Position places the pluck point
+on the body's diameter and a note sends ripples out from it. Reduced motion
+holds the mandala still.
 
 ## Implementation
 
@@ -78,10 +83,11 @@ within 0.34 cents and their decay rates within 0.45 percent, with the same
 partials counted in and out of the band.
 
 The two-page header, the LEDs, the body and the mandala are drawn by
-`display.cpp`; the mandala is 86 nodes turned about the body's centre.
-`tools/extract_motif.py` lifts the motif from Mutable's `rings.ai` (converted
-with `pdftocairo -svg`) into `tools/motif.json`, which `tools/gen_panel.py`
-scales into `panel.svg.fragment`.
+`display.cpp`; the four mandalas are 221 nodes turned about the body's
+centre, one model's set shown at a time. `tools/extract_motif.py` lifts the
+motifs from Mutable's `rings.ai` and `elements.ai` (converted with
+`pdftocairo -svg`) into `tools/motif.json`, which `tools/gen_panel.py` scales
+into `panel.svg.fragment` and lays out in `mandala.h` for the display.
 `tools/gen_panel.py` generates `panel.svg.fragment`.
 `tools/gen_tables.py` generates `tables.h` (sine, Rings' stiffness and
 damping curves, fractional octaves).
@@ -128,5 +134,6 @@ Keep firmware and stock content outside every checkout.
 The code in this folder is covered by [LICENSE](LICENSE). The partial series,
 string loop, decay rules and exciters follow Mutable Instruments Rings,
 Copyright 2015 Emilie Gillet, MIT licence; no Rings source is included. The
-screen's mandala is traced from the Rings panel artwork in Mutable's hardware
-files, CC BY-SA 3.0, Emilie Gillet; `tools/motif.json` carries that licence.
+screen's mandalas are traced from the Rings and Elements panel artwork in
+Mutable's hardware files, CC BY-SA 3.0, Emilie Gillet; `tools/motif.json`
+carries that licence.
