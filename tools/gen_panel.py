@@ -100,7 +100,7 @@ def petal(r0, r1, width, turn=0.0, point=0.6, steps=12):
         rng = range(steps + 1) if side == 1 else range(steps - 1, 0, -1)
         for i in rng:
             t = i / steps
-            w = width / 2 * math.sin(math.pi * t) ** point * (1 - 0.35 * t)
+            w = width / 2 * math.sin(math.pi * t) ** point * (1 - (0.35 * t if point < 1 else 0))
             pts.append((side * w, -(r0 + (r1 - r0) * t)))
     a = math.radians(turn)
     c, s = math.cos(a), math.sin(a)
@@ -204,17 +204,16 @@ def crown(r0, r1, fingers, fill=0.55, tip_steps=6):
 
 def drawn_chords():
     """The chords body's mandala, drawn as a layered flower: three rings of
-    lens petals, each turned half a step from the last, the inner two veined,
-    pointed windows with rungs over the second, ringed dots, a ring and a
-    fringe of rounded fingers."""
+    lens petals, each turned half a step from the last, the innermost raised
+    towards the big ones' tips, the second veined under pointed windows with
+    rungs, rings between, a ring and a fringe of rounded fingers."""
     fold = 8
     half = 360 / fold / 2
-    pieces = [('petal_a', ('path', veined(42, 54, 8)), False, 0, fold),
-              ('petal_b', ('path', veined(42, 56, 10, half)), False, 1, fold),
+    pieces = [('petal_a', ('path', petal(50, 64, 7, 0, 1.0)), False, 0, fold),
+              ('petal_b', ('path', veined(42, 56, 10, half, 0.25)), False, 1, fold),
               ('petal_c', ('path', petal(44, 70, 15, 0, 1.0)), False, 2, fold),
-              ('tower', ('path', tower(42, 57, 72, 7, half, (59.5, 63, 66.5))), False, 3, fold),
-              ('dot', ('circle', 0, -73.6, 1), True, 4, fold),
-              ('dot_ring', ('circle', 0, -73.6, 2.4), False, 4, fold),
+              ('tower', ('path', tower(42, 57, 72, 7, half, (60, 65), half=0.25)), False, 3, fold),
+              ('dot', ('circle', *turned(0, -71, half / 2), 3), False, 4, 2 * fold),
               ('ring', ('path', circle_path(77)), False, 5, 1),
               ('fringe', ('path', crown(77.5, 88, 40)), False, 6, 1)]
     return fold, pieces, 1.0
