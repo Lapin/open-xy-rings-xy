@@ -6,13 +6,13 @@ namespace mi_rings {
 // Matches resources.display in definition.json: paths, points, nodes, texts, palette.
 // The node map, shared with tools/gen_panel.py:
 //   0..7 the header bar; 8 the body circle; 9..11 its inner rings; 12 the centre
-//   dot; 13 the pluck point; 14..16 ripples; 17..20 strings; then the four
-//   mandalas lifted from Mutable's panels, one per model, laid out in mandala.h
-//   (kMandalas, generated with the artwork); the model LEDs, the modes LEDs and
-//   the two halos follow (kFirstModelLed, kFirstModesLed, kHaloNode).
+//   dot; 13 the pluck point; 14..16 ripples; then the string body's dashes,
+//   the sympathetic body's waves and the chords body's lines; the four
+//   mandalas, one per model, laid out in mandala.h (generated with the
+//   artwork); the lit model LED, the lit modes LED and the two halos.
 using Frame = opxy::draw::Frame<0, 0, kNodes, 16, 16>;
 const opxy::u32 kBodyNode = 8, kFirstInner = 9, kInnerRings = 3, kCentreNode = 12, kStrikeNode = 13;
-const opxy::u32 kFirstRipple = 14, kRipples = 3, kWaves = 4, kFirstString = 17, kStrings4 = 4;
+const opxy::u32 kFirstRipple = 14, kRipples = 3, kWaves = 4;
 const opxy::u32 kLayers = 7;
 struct DisplayState {
     opxy::u32 initialized, track, previous_event;

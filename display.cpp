@@ -2,7 +2,7 @@
 // as on the Rings panel, lit by the choice and haloed when it changes; and in
 // the middle the body, a circle with a dot at its centre, inside a mandala of
 // petals that turns slowly, kicks on every note and eases back as the note
-// fades. Structure adds petals, Bright lights the body's inner rings or strings,
+// fades. Structure adds petals, Bright lights the body's inside,
 // Damping sets how long the kick lasts, Position places the pluck point and the
 // ripples that spread from it. Each model has its own mandala, lifted from
 // Mutable's panels: Rings' Frequency paisleys for the modal body, Elements'
@@ -129,8 +129,9 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 glow = flash * 5 >> 10;                                    // 0..5 added by a note
 
     // The body: its circle, shrunk to sit inside the model's mandala, swells a
-    // little with a note; the inside is rings for the modal body and strings
-    // for the string bodies, lit by Bright.
+    // little with a note. Inside, lit by Bright: rings for the modal body,
+    // dashes for the string body, waves for the sympathetic, lines for the
+    // chords, each stirred by a note and kept within the circle.
     const Mandala& mandala = kMandalas[model];
     const i32 body = mandala.body_scale;                                 // Q10
     const i32 swell = (unit + (flash * 40 >> 10)) * body >> 10;
@@ -138,16 +139,44 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     place(frame, kBodyNode, kCentreX, kCentreY, swell, static_cast<u32>(clamp(8 + glow, 1, 15)), stroke);
     place(frame, kCentreNode, kCentreX, kCentreY, unit, static_cast<u32>(clamp(9 + glow, 1, 15)), fill_and_stroke);
     const i32 inside = clamp(bright + glow, 1, 15);
+    const i32 tremor = sine((state.age * 30) % 3600);                    // Q10, about 8 Hz
+    const i32 quiver = sine((state.age * 41 + 900) % 3600);
     for (u32 i = 0; i < kInnerRings; ++i) {
-        if (model != 0) { hide(frame, kFirstInner + i); continue; }
+        if (model != kModal) { hide(frame, kFirstInner + i); continue; }
         place(frame, kFirstInner + i, kCentreX, kCentreY, swell, static_cast<u32>(inside), stroke);
     }
-    for (u32 i = 0; i < kStrings4; ++i) {
-        const u32 node = kFirstString + i;
-        if (model == 0 || (model == 1 && i > 0)) { hide(frame, node); continue; }
-        const i32 y = (model == 1 ? 0 : (static_cast<i32>(i) * 12 - 18) * unit) * body >> 10;
-        const i32 length = (model == 1 ? unit + unit / 10 : unit) * body >> 10;
-        place(frame, node, kCentreX, kCentreY + y, length, static_cast<u32>(inside), stroke);
+    // The string body: five dashes that flip up into bars of a spectrum on a
+    // note, shimmering, and lie back down as it fades. The authored dash is
+    // 16 px, so scale 0.6 is a dash and 2 a bar.
+    static const i32 kBarLevel[kDashes] = {1300, 2048, 1600, 1950, 1150};   // Q10 scales when struck
+    static const i32 kBarRate[kDashes] = {37, 29, 47, 23, 53};
+    for (u32 i = 0; i < kDashes; ++i) {
+        const u32 node = kFirstDash + i;
+        if (model != kString) { hide(frame, node); continue; }
+        const i32 shimmer = unit - (unit - sine((state.age * kBarRate[i]) % 3600)) * 120 / 2048;  // 0.88..1
+        const i32 level = clamp(614 + ((kBarLevel[i] - 614) * flash >> 10) * shimmer / unit, 614, 2 * unit);
+        const i32 x = (static_cast<i32>(i) * 14 - 28) * unit;
+        place(frame, node, kCentreX + (x * body >> 10), kCentreY, level * body >> 10, static_cast<u32>(inside), fill_and_stroke);
+        turn(frame, node, rotation(900 * flash >> 10));
+    }
+    // The sympathetic body: three waves that swell a fifth and tremble on a note.
+    for (u32 i = 0; i < kWaves3; ++i) {
+        const u32 node = kFirstWave + i;
+        if (model != kSympathetic) { hide(frame, node); continue; }
+        const i32 grow = unit + (flash * 205 >> 10);
+        const i32 side = (i & 1) ? -1 : 1;
+        const i32 x = ((static_cast<i32>(i) - 1) * 13 * grow) + side * (tremor * flash >> 10) * 2;
+        place(frame, node, kCentreX + (x * body >> 10), kCentreY, grow * body >> 10, static_cast<u32>(inside), stroke);
+    }
+    // The chords body: three lines across the body that quiver on a note.
+    for (u32 i = 0; i < kChords3; ++i) {
+        const u32 node = kFirstChord + i;
+        if (model != kChords) { hide(frame, node); continue; }
+        const i32 side = (i & 1) ? -1 : 1;
+        const i32 wave = (i == 1 ? quiver : tremor) * flash >> 10;      // Q10, fading with the kick
+        const i32 y = kChordY[i] * swell + side * wave * 3 / 2;
+        place(frame, node, kCentreX, kCentreY + y, swell, static_cast<u32>(inside), stroke);
+        turn(frame, node, rotation(side * wave * 15 >> 10));
     }
 
     // The pluck point: Position runs along the body's diameter from the left
@@ -202,12 +231,10 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         }
     }
 
-    // The LEDs: the chosen one lit, a halo on it while the change is fresh.
+    // The LEDs: the chosen one lit over the artwork's rings, a halo on it while the change is fresh.
     for (u32 column = 0; column < 2; ++column) {
         const u32 chosen = column == 0 ? model : modes;
-        const u32 first = column == 0 ? kFirstModelLed : kFirstModesLed;
-        for (u32 i = 0; i < 4; ++i)
-            place(frame, first + i, kLedX[column], kLedY[i], unit, i == chosen ? 15u : 4u, stroke);
+        place(frame, column == 0 ? kModelLed : kModesLed, kLedX[column], kLedY[chosen], unit, 15u, stroke);
         const i32 halo = clamp(unit - (state.halo_age[column] * unit / kHaloLife), 0, unit);
         const i32 shade = halo * 9 >> 10;
         if (shade <= 0) hide(frame, kHaloNode + column);

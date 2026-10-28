@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Generates panel.svg.fragment: the two-page header block, the Rings-style
-model and modes LEDs with their icons either side, and the nodes the display
-animates: the body circle with its inner rings and strings, the pluck point
-and ripples, and four mandalas lifted from Mutable's panels, one per model,
-that turn around the body. Writes mandala.h beside the fragment.
+model and modes LED rings with their icons either side, and the nodes the
+display animates: the body circle with its inner rings, dashes, waves or
+lines, the pluck point and ripples, the four mandalas that turn around the
+body, the lit LEDs and their halos. Writes mandala.h beside the fragment.
 
 Only forms seen on hardware: rect, circle, path of M/L/Z, text; at most two
 decimals; explicit paint on every leaf. The body's nodes are parked off screen;
@@ -23,7 +23,9 @@ ID = 'mi_rings'
 CX, CY = 240, 130                      # the body's centre
 BODY = 40                              # the body circle's radius
 INNER = [11, 21, 31]                   # the inner rings
-STRING_HALF = 36                       # half a string's authored length
+DASH, DASHES = 16, 5                   # the string body's dashes: authored length, count
+WAVE_HALF, WAVE_AMP, WAVES3 = 28, 4, 3  # the sympathetic body's waves: half length, amplitude, count
+CHORD_Y = (-18, 0, 18)                 # the chords body's lines
 LED_X = (30, 450)                      # model LEDs left, modes LEDs right
 LED_Y = (82, 114, 146, 178)
 LED_R = 8
@@ -40,8 +42,10 @@ FIRST_INNER = 9                        # 9..11
 CENTRE = 12
 STRIKE = 13
 FIRST_RIPPLE, RIPPLES = 14, 3          # 14..16
-FIRST_STRING, STRINGS = 17, 4          # 17..20
-FIRST_MANDALA = 21
+FIRST_DASH = 17                        # 17..21: the string body's dashes, bars when struck
+FIRST_WAVE = 22                        # 22..24: the sympathetic body's waves
+FIRST_CHORD = 25                       # 25..27: the chords body's lines
+FIRST_MANDALA = 28
 REACH = 88                             # a mandala's outermost pixel from the centre
 TOLERANCE = 0.3                        # px: the outlines simplified to what the screen can show
 
@@ -344,8 +348,10 @@ for i in range(4):
 for i in range(4):
     out.append(f'<text id="{ID}_text_{12 + i}" transform="matrix(1 0 0 1 {65 + 120 * i} 33)" fill="#707070" {FONT} font-size="13px">{values[4 + i]}</text>')
 
-out.append('<!-- The LEDs\' icons, as on the Rings panel: models on the left, modes on the right. -->')
+out.append('<!-- The LEDs\' rings and icons, as on the Rings panel: models on the left, modes on the right. -->')
 for k, y in enumerate(LED_Y):
+    for x in LED_X:
+        out.append(f'<circle cx="{x}" cy="{y}" r="{LED_R}" fill="none" stroke="{BARS[2]}" stroke-width="1.2"/>')
     out += model_icon(k, LED_X[0], y)
     out += modes_icon(k, LED_X[1], y)
 
@@ -357,8 +363,17 @@ out.append(f'<circle id="{ID}_node_{CENTRE}" {PARKED} cx="0" cy="0" r="2" fill="
 out.append(f'<circle id="{ID}_node_{STRIKE}" {PARKED} cx="0" cy="0" r="2.5" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1"/>')
 for i in range(RIPPLES):
     out.append(circle_node(FIRST_RIPPLE + i, 40))
-for i in range(STRINGS):
-    out.append(node(FIRST_STRING + i, [(-STRING_HALF, -0.4), (STRING_HALF, -0.4), (STRING_HALF, 0.4), (-STRING_HALF, 0.4)], width=0.5))
+for i in range(DASHES):
+    out.append(poly([(-DASH / 2, -0.8), (DASH / 2, -0.8), (DASH / 2, 0.8), (-DASH / 2, 0.8)], '#808080', 0.5, fill='#808080',
+                    attrs=f' id="{ID}_node_{FIRST_DASH + i}" {PARKED}'))
+wave = [(WAVE_AMP * math.sin(1.5 * math.pi * (y + WAVE_HALF) / WAVE_HALF - math.pi / 2 * 0), y)
+        for y in (-WAVE_HALF + 2 * WAVE_HALF * i / 28 for i in range(29))]
+wave_ribbon = wave + [(x + 0.8, y) for x, y in wave[::-1]]
+for i in range(WAVES3):
+    out.append(node(FIRST_WAVE + i, wave_ribbon, width=0.5))
+for i, y in enumerate(CHORD_Y):
+    half = math.sqrt(BODY * BODY - y * y) - 1
+    out.append(node(FIRST_CHORD + i, [(-half, -0.4), (half, -0.4), (half, 0.4), (-half, 0.4)], width=0.5))
 out.append('<!-- The mandalas, one per model, lifted from Mutable\'s panels: every piece authored upright')
 out.append('     at the centre and turned by the display, which shows one model\'s set at a time. -->')
 table = []          # per model: (fold, body scale Q10, [(first, count, layer, fill)])
@@ -411,15 +426,17 @@ for model in MODELS:
                 out.append(poly(shape[1], '#808080', '.8', fill=paint[0], attrs=f' id="{ID}_node_{n}"', decimals=1))
         next_node += count
     table.append((fold, round(body * 1024), groups))
-FIRST_MODEL_LED = next_node            # four model LEDs
-FIRST_MODES_LED = next_node + 4        # four modes LEDs
-HALO = next_node + 8                   # model, modes
+MODEL_LED = next_node                  # the lit model LED; the unlit rings are artwork
+MODES_LED = next_node + 1              # the lit modes LED
+HALO = next_node + 2                   # model, modes
 NODES = HALO + 2
 assert NODES <= 256, NODES
 
 header = ['// Generated by tools/gen_panel.py from tools/motif.json: the mandalas\' nodes.',
           '#pragma once', '#include <opxy/types.hpp>', '', 'namespace mi_rings {',
-          f'const opxy::u32 kFirstMandala = {FIRST_MANDALA}, kFirstModelLed = {FIRST_MODEL_LED}, kFirstModesLed = {FIRST_MODES_LED}, kHaloNode = {HALO}, kNodes = {NODES};',
+          f'const opxy::u32 kFirstDash = {FIRST_DASH}, kDashes = {DASHES}, kFirstWave = {FIRST_WAVE}, kWaves3 = {WAVES3}, kFirstChord = {FIRST_CHORD}, kChords3 = {len(CHORD_Y)};',
+          f'const opxy::i32 kDashLength = {DASH}, kWaveHalf = {WAVE_HALF}, kChordY[{len(CHORD_Y)}] = {{{", ".join(str(y) for y in CHORD_Y)}}};',
+          f'const opxy::u32 kFirstMandala = {FIRST_MANDALA}, kModelLed = {MODEL_LED}, kModesLed = {MODES_LED}, kHaloNode = {HALO}, kNodes = {NODES};',
           'const opxy::u32 kMandalaGroups = %d;' % max(len(t[2]) for t in table),
           'struct MandalaGroup { opxy::u16 first; opxy::u8 count, layer, fill; };',
           'struct Mandala { opxy::u32 fold; opxy::i32 body_scale; MandalaGroup groups[%d]; };' % max(len(t[2]) for t in table),
@@ -434,11 +451,9 @@ definition = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'def
 text = open(definition).read()
 open(definition, 'w').write(re.sub(r'"nodes": \d+', f'"nodes": {NODES}', text, count=1))
 
-out.append('<!-- The LEDs and the halo that marks a change. -->')
-for i in range(4):
-    out.append(circle_node(FIRST_MODEL_LED + i, LED_R, stroke='#808080', width=1.2))
-for i in range(4):
-    out.append(circle_node(FIRST_MODES_LED + i, LED_R, stroke='#808080', width=1.2))
+out.append('<!-- The lit LED of each column, and the halo that marks a change. -->')
+out.append(circle_node(MODEL_LED, LED_R, stroke='#808080', width=1.2))
+out.append(circle_node(MODES_LED, LED_R, stroke='#808080', width=1.2))
 for i in range(2):
     out.append(circle_node(HALO + i, LED_R + 4, stroke='#808080', width=1))
 for i in range(PALETTE):
