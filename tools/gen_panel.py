@@ -118,13 +118,13 @@ def drawn_lotus():
     petals between them, an outer ring and its dots. Pieces are (name, shape, fill, layer, count)."""
     fold = 8
     pieces = [('ring_inner', ('path', circle_path(45)), False, 0, 1),
-              ('wave', ('path', wave_ring(51, 2 * fold, 3.5)), False, 0, 1),
-              ('petal', ('path', petal(46, 72, 20)), False, 1, fold),
-              ('petal_inner', ('path', petal(49, 64, 10)), False, 2, fold),
-              ('eye', ('circle', 0, -54, 2), True, 3, fold),
-              ('petal_outer', ('path', petal(48, 86, 24, 360 / fold / 2)), False, 4, fold),
+              ('wave', ('path', wave_ring(48.5, 2 * fold, 2.5)), False, 0, 1),
+              ('petal', ('path', petal(53, 74, 19)), False, 1, fold),
+              ('petal_inner', ('path', petal(56, 67, 9)), False, 2, fold),
+              ('eye', ('circle', 0, -60, 2), True, 3, fold),
+              ('petal_outer', ('path', petal(54, 86, 24, 360 / fold / 2)), False, 4, fold),
               ('ring_outer', ('path', circle_path(87)), False, 5, 1)]
-    pieces += [('dot', ('circle', *turned(0, -79, 360 / fold / 2), 2), True, 6, fold)]
+    pieces += [('dot', ('circle', *turned(0, -78, 360 / fold / 2), 2), True, 6, fold)]
     return fold, pieces, 1.0
 
 
