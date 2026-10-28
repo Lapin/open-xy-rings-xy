@@ -27,7 +27,7 @@ Two pages of four encoders; a press of any encoder switches pages.
 | Position | The strike or pluck point: 0 rings every partial, 100 the middle. On a string it also sets the pickup's comb and the pluck's length |
 | Model (page 2, with Struct) | modal, string, sympath, chords |
 | Strike (page 2, with Bright) | Modal only: 0 is a single pulse, as Rings strikes; higher turns it into a noise burst of up to 256 samples at the same energy |
-| Modes (page 2, with Position) | Modal only: how many partials ring, 6, 12, 18 or 24, as Rings' polyphony button trades voices for partials; fewer cost less CPU |
+| Modes (page 2, with Position) | Modal only: how many partials ring: bare 6, lean 12, full 18, lush 24, as Rings' polyphony button trades voices for partials; fewer cost less CPU |
 
 The screen shows both pages in the shared header. Either side sit the Rings
 panel's LEDs: the four models on the left (rings, bars, waves, a chord stack),

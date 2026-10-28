@@ -25,7 +25,7 @@
 <text id="mi_rings_text_12" transform="matrix(1 0 0 1 65 33)" fill="#707070" font-family="UniversNextPro-Light" font-size="13px">modal</text>
 <text id="mi_rings_text_13" transform="matrix(1 0 0 1 185 33)" fill="#707070" font-family="UniversNextPro-Light" font-size="13px">0</text>
 <text id="mi_rings_text_14" transform="matrix(1 0 0 1 305 33)" fill="#707070" font-family="UniversNextPro-Light" font-size="13px">50</text>
-<text id="mi_rings_text_15" transform="matrix(1 0 0 1 425 33)" fill="#707070" font-family="UniversNextPro-Light" font-size="13px">12</text>
+<text id="mi_rings_text_15" transform="matrix(1 0 0 1 425 33)" fill="#707070" font-family="UniversNextPro-Light" font-size="13px">lean</text>
 <!-- The LEDs' icons, as on the Rings panel: models on the left, modes on the right. -->
 <circle cx="30" cy="82" r="2.2" fill="none" stroke="#8A8A8A" stroke-width="0.8"/>
 <circle cx="30" cy="82" r="4.6" fill="none" stroke="#8A8A8A" stroke-width="0.8"/>

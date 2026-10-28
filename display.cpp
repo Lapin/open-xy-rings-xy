@@ -69,7 +69,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     char values[8][header_capacity];
     for (u32 i = 0; i < 8; ++i) header_amount(values[i], header_capacity, input.slots[i]);
     static const char* const kModelNames[4] = {"modal", "string", "sympath", "chords"};
-    static const char* const kModeNames[4] = {"6", "12", "18", "24"};
+    static const char* const kModeNames[4] = {"bare", "lean", "full", "lush"};
     const u32 model = choice4(input.slots[4]);
     const u32 modes = choice4(input.slots[6]);
     opxy::draw::copy(values[4], header_capacity, kModelNames[model]);

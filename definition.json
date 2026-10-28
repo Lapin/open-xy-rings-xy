@@ -84,10 +84,10 @@
       "mapping": {
         "kind": "enum",
         "labels": [
-          "6",
-          "12",
-          "18",
-          "24"
+          "bare",
+          "lean",
+          "full",
+          "lush"
         ]
       },
       "display": "enum"
