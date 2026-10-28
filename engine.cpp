@@ -291,7 +291,7 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
             else s.increment += static_cast<u32>(multiply(gap, glide));
             retune = true;
         }
-        const i32 index = static_cast<i32>((n << 31) / count);                                // n / count, Q31
+        const i32 index = static_cast<i32>(n * (2147483648u / count));                        // n / count, Q31
         damp += multiply(index, 2040109466 - damp);                                           // towards 0.95 up the bank
         Stretch* stretch = (n == 0 && model == kString) ? &voice.stretch : 0;
         if (retune) tune_string(s, stretch, stiffness, bright, damp, pos);
