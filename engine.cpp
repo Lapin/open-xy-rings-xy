@@ -264,7 +264,7 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
         return;
     }
     i32 offsets[kStrings] = {0, 0, 0, 0};
-    if (count > 1) sympathetic_notes(structure, model, offsets);
+    if (model != kString) sympathetic_notes(structure, model, offsets);  // chords tune the main string too
     for (u32 n = 0; n < count; ++n) {
         String& s = voice.strings[n];
         if (!s.active) {
