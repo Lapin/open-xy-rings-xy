@@ -256,13 +256,13 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
     const i32 stiffness = harmonic_centre(structure);  // the main string's dispersion; the notes keep the raw knob
     const u32 count = strings;
     for (u32 n = count; n < kStrings; ++n) voice.strings[n].active = 0;
-    i32 input[opxy::block_frames];
-    i32 bridge[opxy::block_frames];
-    pluck_render(voice, input);
     if (!voice.ringing) {
         for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = 0;
         return;
     }
+    i32 input[opxy::block_frames];
+    i32 bridge[opxy::block_frames];
+    pluck_render(voice, input);
     // The string model's extras are unison copies a few cents apart, a
     // thickening that is not in Rings; the sympathetic models tune theirs.
     static const i32 kDetune[kStrings] = {0, 1565873, -2013266, 2684354};  // 0, +7, -9, +12 cents, Q28 octaves
@@ -279,42 +279,45 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
             s.active = 1;
             dirty = true;
         }
-        i32 bright = brightness, damp = damping, pos = position;
+        i32 bright = brightness, damp = damping;
         bool retune = dirty;
         if (n == 0) {
             // Chords tune the main string an octave below the note, as Rings'
             // chord tables do; the sympathetic model leaves it on the note.
             s.increment = s.target = offsets[0] ? static_cast<u32>(exp2_scale(static_cast<i32>(increment >> 1), offsets[0])) << 1 : increment;
         } else {
-            // Sympathetic strings glide to their notes, duller and well damped,
-            // their pickup wandering with a slow LFO.
+            // Sympathetic strings glide to their notes, duller and well damped.
             s.target = static_cast<u32>(exp2_scale(static_cast<i32>(increment >> 1), offsets[n])) << 1;
-          if (model != kString) {
-            bright = bend(bend(brightness));
-            damp = 1503238554 + multiply(damping, 579820585);                                  // 0.7 + 0.27 d
-            const i32 off_centre = position - (kOne >> 1);
-            const i32 amount = multiply((kOne >> 1) - (off_centre < 0 ? -off_centre : off_centre), 1932735283);  // 0.9 (0.5 - |0.5 - p|)
-            static const u32 kLfoRates[kStrings] = {0, 1246614, 1090787, 716803};            // 0.4, 0.35, 0.23 Hz, a 31-bit turn per block
-            voice.lfo[n] = (voice.lfo[n] + kLfoRates[n]) & 0x7fffffffu;
-            const i32 wave = (kOne >> 1) + (cosine(voice.lfo[n]) >> 1);                        // 0..1
-            pos = position + multiply(wave, amount);
-          }
+            if (model != kString) {
+                bright = bend(bend(brightness));
+                damp = 1503238554 + multiply(damping, 579820585);                              // 0.7 + 0.27 d
+            }
             const i32 glide = exp2_scale(kOne, ((bright - kOne) >> 3) * 3);                     // 2^((b - 1) 3)
             const i32 gap = static_cast<i32>(s.target - s.increment);
             const u32 before = s.increment;
             if (!s.increment) s.increment = s.target;
             else if (gap > -64 && gap < 64) s.increment = s.target;
             else s.increment += static_cast<u32>(multiply(gap, glide));
-            // A full retune only while gliding or after a control moved; the
-            // wandering pickup alone is cheap to follow.
-            retune = dirty || s.increment != before;
-            if (!retune) set_pickup(s, pos);
+            retune = dirty || s.increment != before;  // a full retune only while gliding or after a control moved
         }
         const i32 index = static_cast<i32>(n * (2147483648u / count));                        // n / count, Q31
         if (model != kString) damp += multiply(index, 2040109466 - damp);                     // towards 0.95 up the bank
-        Stretch* stretch = (n == 0 && model == kString) ? &voice.stretch : 0;
-        if (retune) tune_string(s, stretch, stiffness, bright, damp, pos);
-        render_string(s, stretch, voice.seed, n == 0 ? input : bridge, sum, n == 0 ? bridge : 0);
+        if (n == 0) {
+            if (model == kString) {
+                if (retune) tune_string(s, &voice.stretch, stiffness, bright, damp, position);
+                // Structure's harmonic zone has no dispersion: the plain loop then.
+                if (s.stretch_point || s.noise_amount || s.bridge_curving || s.ac_blocking)
+                    render_string<kMainStretch>(s, voice.stretch, voice.seed, input, sum, bridge);
+                else
+                    render_string<kMain>(s, voice.stretch, voice.seed, input, sum, bridge);
+            } else {
+                if (retune) tune_string(s, 0, stiffness, bright, damp, position);
+                render_string<kMain>(s, voice.stretch, voice.seed, input, sum, bridge);
+            }
+        } else {
+            if (retune) tune_string(s, 0, stiffness, bright, damp, position);
+            render_string<kCopy>(s, voice.stretch, voice.seed, bridge, sum, 0);
+        }
         if (n == 0 && count > 1) {
             // The other strings hear the bridge, as in Rings, and half the pluck
             // itself, as Rings' strings do from an external exciter: with the

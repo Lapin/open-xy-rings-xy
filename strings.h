@@ -9,22 +9,30 @@ inline void line_write(Line& line, i32 sample) {
     line.samples[line.write] = sample;
     line.write = (line.write - 1) & (kLineLength - 1);
 }
-// Linear read at a Q16 delay.
+// Linear read at a Q16 delay. The index is masked once: on the Blackfin the
+// masked arithmetic of every tap was most of a read.
 inline i32 line_read(const Line& line, i32 delay) {
-    const u32 whole = static_cast<u32>(delay >> 16);
+    const u32 t = (line.write + static_cast<u32>(delay >> 16)) & (kLineLength - 1);
     const i32 fraction = static_cast<i32>(delay & 0xffff) << 15;
-    const i32 a = line.samples[(line.write + whole) & (kLineLength - 1)];
-    const i32 b = line.samples[(line.write + whole + 1) & (kLineLength - 1)];
+    const i32 a = line.samples[t];
+    const i32 b = line.samples[t < kLineLength - 1 ? t + 1 : 0];
     return a + multiply(b - a, fraction);
 }
-// Hermite read at a Q16 delay, as stmlib's DelayLine::ReadHermite.
+// Hermite read at a Q16 delay, as stmlib's DelayLine::ReadHermite; the four
+// taps come straight from the line when they lie inside it.
 inline i32 line_read_hermite(const Line& line, i32 delay) {
-    const u32 t = line.write + static_cast<u32>(delay >> 16) + kLineLength;
+    const u32 t = (line.write + static_cast<u32>(delay >> 16)) & (kLineLength - 1);
     const i32 f = static_cast<i32>(delay & 0xffff) << 15;
-    const i32 xm1 = line.samples[(t - 1) & (kLineLength - 1)];
-    const i32 x0 = line.samples[t & (kLineLength - 1)];
-    const i32 x1 = line.samples[(t + 1) & (kLineLength - 1)];
-    const i32 x2 = line.samples[(t + 2) & (kLineLength - 1)];
+    i32 xm1, x0, x1, x2;
+    if (t >= 1 && t < kLineLength - 2) {
+        const i32* p = line.samples + t;
+        xm1 = p[-1]; x0 = p[0]; x1 = p[1]; x2 = p[2];
+    } else {
+        xm1 = line.samples[(t - 1) & (kLineLength - 1)];
+        x0 = line.samples[t];
+        x1 = line.samples[(t + 1) & (kLineLength - 1)];
+        x2 = line.samples[(t + 2) & (kLineLength - 1)];
+    }
     const i32 c = (x1 - xm1) >> 1;
     const i32 v = x0 - x1;
     const i32 w = c + v;
@@ -40,7 +48,6 @@ inline i32 stretch_allpass(Stretch& stretch, i32 sample, u32 delay, i32 coeffici
     stretch.write = (stretch.write - 1) & (kStretchLength - 1);
     return read - multiply(coefficient, write);
 }
-
 // --- Per-block tuning --------------------------------------------------------
 const i32 kDcPole = 2146509803;          // 1 - 20 / 44100
 const i32 kInvPi = 683565276;            // 1 / pi
@@ -150,6 +157,7 @@ inline void tune_string(String& s, Stretch* stretch, i32 structure, i32 brightne
     s.c0 = multiply(coefficient, h0);
     s.c1 = multiply(coefficient, h1);
     lowpass(damping_f, 4, s.g, s.h);                                                         // Q 0.5
+    s.gh = multiply(s.g, s.h);
     // The low-pass's phase delay at the note, atan(tan(pi f) / tan(pi fc)) / pi of
     // a period, shortens the loop. Rings tabulates it from the cutoff's
     // semitones; the warped ratio keeps it right where the cutoff is capped.
@@ -166,24 +174,44 @@ inline void tune_string(String& s, Stretch* stretch, i32 structure, i32 brightne
 
 // --- Rendering -------------------------------------------------------------
 // One block of a string: input in, out += s - pickup, as Rings dispatches voices.
-inline void render_string(String& s, Stretch* stretch, u32& seed, const i32* input, i32* out, i32* bridge_out) {
-    const i32 c0 = s.c0, c1 = s.c1, g = s.g, h = s.h, comb = s.comb, mix = s.pickup_mix;
+// The main string reads its loop with the Hermite interpolator and subtracts
+// Position's pickup; with dispersion the string model's main string also
+// carries the all-pass, the noise and the bridge. A copy, sympathetic or
+// unison, reads linearly and has no pickup. Everything the loop touches is a
+// local: the Blackfin compiler reloads a member of s every sample otherwise,
+// since the line's writes could alias it.
+enum StringKind { kMainStretch, kMain, kCopy };
+template <int kind>
+inline void render_string(String& s, Stretch& stretch, u32& seed_in, const i32* input, i32* out, i32* bridge_out) {
+    const u32 mask = kLineLength - 1;
+    i32* const samples = s.line.samples;
+    u32 w = s.line.write;
+    const i32 c0 = s.c0, c1 = s.c1, g = s.g, gh = s.gh, delay0 = s.delay;
+    const u32 whole0 = static_cast<u32>(delay0 >> 16);
+    const i32 fraction0 = static_cast<i32>(delay0 & 0xffff) << 15;
+    const i32 comb = s.comb, mix = s.pickup_mix;
+    const i32 pickup0 = multiply(delay0, comb);
+    const u32 pickup_whole0 = static_cast<u32>(pickup0 >> 16);
+    const i32 pickup_fraction0 = static_cast<i32>(pickup0 & 0xffff) << 15;
+    const i32 noise_gain = s.noise_gain, noise_filter = s.noise_filter, noise_amount = s.noise_amount;
+    const i32 bridge_curving = s.bridge_curving, stretch_point = s.stretch_point, ap_gain = s.ap_gain;
+    const i32 ac_blocking = s.ac_blocking;
     i32 x1 = s.x1, x2 = s.x2, s1 = s.s1, s2 = s.s2, dc_x = s.dc_x, dc_y = s.dc_y;
     i32 dnoise = s.noise, bridge = s.bridge;
+    u32 seed = seed_in;
     for (unsigned i = 0; i < opxy::block_frames; ++i) {
-        i32 delay = s.delay;
-        i32 sample;
-        if (stretch) {
+        i32 sample, pickup;
+        if (kind == kMainStretch) {
             // Noise and the curved bridge modulate the loop length.
-            const i32 n = multiply(noise(seed) >> 7, s.noise_gain) * 8;                       // +-1/(0.2 + nf), Q24
-            dnoise += multiply(s.noise_filter, n - dnoise);
-            const i32 wobble = multiply(dnoise, s.noise_amount) - multiply(bridge, s.bridge_curving);  // Q24
-            delay += multiply(delay, clamp(wobble, -(1 << 23), 1 << 23) << 7);
-            const i32 ap_delay = multiply(delay, s.stretch_point);
+            const i32 n = multiply(noise(seed) >> 7, noise_gain) * 8;                          // +-1/(0.2 + nf), Q24
+            dnoise += multiply(noise_filter, n - dnoise);
+            const i32 wobble = multiply(dnoise, noise_amount) - multiply(bridge, bridge_curving);  // Q24
+            const i32 delay = delay0 + multiply(delay0, clamp(wobble, -(1 << 23), 1 << 23) << 7);
+            const i32 ap_delay = multiply(delay, stretch_point);
             const i32 main_delay = delay - ap_delay;
             if (ap_delay >= kDelayMin && main_delay >= kDelayMin) {
                 sample = line_read_hermite(s.line, main_delay);
-                sample = stretch_allpass(*stretch, sample, static_cast<u32>(ap_delay >> 16), s.ap_gain);
+                sample = stretch_allpass(stretch, sample, static_cast<u32>(ap_delay >> 16), ap_gain);
             } else {
                 sample = line_read_hermite(s.line, delay);
             }
@@ -191,13 +219,37 @@ inline void render_string(String& s, Stretch* stretch, u32& seed, const i32* inp
             const i32 ac = sample - dc_x + multiply(kDcPole, dc_y);
             dc_x = sample;
             dc_y = ac;
-            sample += multiply(s.ac_blocking, ac - sample);
+            sample += multiply(ac_blocking, ac - sample);
             const i32 magnitude = sample < 0 ? -sample : sample;
             const i32 value = magnitude - kBridgeKnee;
             const i32 positive = value > 0 ? value * 2 : 0;
             bridge = sample > 0 ? positive : -(positive + (positive >> 1));
+            pickup = multiply(delay, comb);
         } else {
-            sample = line_read_hermite(s.line, delay);
+            const u32 t = (w + whole0) & mask;
+            if (kind == kMain) {
+                i32 xm1, x0, xp1, xp2;
+                if (t >= 1 && t < kLineLength - 2) {
+                    const i32* p = samples + t;
+                    xm1 = p[-1]; x0 = p[0]; xp1 = p[1]; xp2 = p[2];
+                } else {
+                    xm1 = samples[(t - 1) & mask];
+                    x0 = samples[t];
+                    xp1 = samples[(t + 1) & mask];
+                    xp2 = samples[(t + 2) & mask];
+                }
+                const i32 c = (xp1 - xm1) >> 1;
+                const i32 v = x0 - xp1;
+                const i32 ww = c + v;
+                const i32 a = ww + v + ((xp2 - x0) >> 1);
+                const i32 b_neg = ww + a;
+                sample = multiply(multiply(multiply(a, fraction0) - b_neg, fraction0) + c, fraction0) + x0;
+            } else {
+                const i32 a = samples[t];
+                const i32 b = samples[(t + 1) & mask];
+                sample = a + multiply(b - a, fraction0);
+            }
+            pickup = 0;
         }
         sample += input[i];
         // The damping FIR, then the damping low-pass.
@@ -205,7 +257,7 @@ inline void render_string(String& s, Stretch* stretch, u32& seed, const i32* inp
         x2 = x1;
         x1 = sample;
         const i32 v = fir - (s2 + s1 * 2 + multiply(g, s1));
-        const i32 t = multiply(g, multiply(h, v));
+        const i32 t = multiply(gh, v);
         const i32 bp = t + s1;
         s1 = bp + t;
         const i32 u = multiply(g, bp);
@@ -214,14 +266,31 @@ inline void render_string(String& s, Stretch* stretch, u32& seed, const i32* inp
         // Eight units of headroom: a sustained drive at infinite damping gathers
         // without bound in Rings' float loop; here it stops short of the integer.
         lp = clamp(lp, -(1 << 27), 1 << 27);
-        line_write(s.line, lp);
-        const i32 pickup = line_read(s.line, multiply(delay, comb));
-        const i32 o = lp - multiply(mix, pickup);
-        out[i] += o;
-        if (bridge_out) bridge_out[i] = o;
+        samples[w] = lp;
+        w = (w - 1) & mask;
+        if (kind == kCopy) {
+            out[i] += lp;
+        } else {
+            u32 tp;
+            i32 fp;
+            if (kind == kMainStretch) {
+                tp = (w + static_cast<u32>(pickup >> 16)) & mask;
+                fp = static_cast<i32>(pickup & 0xffff) << 15;
+            } else {
+                tp = (w + pickup_whole0) & mask;
+                fp = pickup_fraction0;
+            }
+            const i32 a = samples[tp];
+            const i32 b = samples[(tp + 1) & mask];
+            const i32 o = lp - multiply(mix, a + multiply(b - a, fp));
+            out[i] += o;
+            bridge_out[i] = o;
+        }
     }
+    s.line.write = w;
     s.x1 = x1; s.x2 = x2; s.s1 = s1; s.s2 = s2; s.dc_x = dc_x; s.dc_y = dc_y;
     s.noise = dnoise; s.bridge = bridge;
+    seed_in = seed;
 }
 
 // --- The plucker and the sympathetic strings' notes ------------------------
@@ -247,12 +316,21 @@ inline void pluck(Voice& voice, i32 brightness, u32 increment, i32 position, i32
     i32 cutoff = shift(exp2_scale(static_cast<i32>(increment >> 1), colour - (1 << 30)), 3);
     if (cutoff > kStringCutoffLimit) cutoff = kStringCutoffLimit;
     lowpass(cutoff, 2, p.g, p.h);
+    p.gh = multiply(p.g, p.h);
+    p.spent = 0;
 }
 // One block of the plucker, DC blocked, into the main string's input, Q7.24.
+// Once the burst is over and the comb has rung down below -120 dB the plucker
+// is spent and the block is silence at no cost until the next note.
 inline void pluck_render(Voice& voice, i32* out) {
     Plucker& p = voice.plucker;
-    const i32 g = p.g, h = p.h, gain = p.gain, period = p.period;
+    if (p.spent) {
+        for (unsigned i = 0; i < opxy::block_frames; ++i) out[i] = 0;
+        return;
+    }
+    const i32 g = p.g, gh = p.gh, gain = p.gain, period = p.period;
     i32 s1 = p.s1, s2 = p.s2, dc_x = voice.in_dc_x, dc_y = voice.in_dc_y;
+    i32 largest = 0;
     for (unsigned i = 0; i < opxy::block_frames; ++i) {
         i32 sample = 0;
         if (p.remaining) {
@@ -267,7 +345,7 @@ inline void pluck_render(Voice& voice, i32* out) {
         p.comb[p.write] = sample;
         p.write = (p.write - 1) & (kCombLength - 1);
         const i32 v = sample - (s2 + s1 + multiply(g, s1));
-        const i32 t = multiply(g, multiply(h, v));
+        const i32 t = multiply(gh, v);
         const i32 bp = t + s1;
         s1 = bp + t;
         const i32 u = multiply(g, bp);
@@ -277,10 +355,15 @@ inline void pluck_render(Voice& voice, i32* out) {
         dc_x = lp;
         dc_y = y;
         out[i] = y;
+        const i32 magnitude = y < 0 ? -y : y;
+        if (magnitude > largest) largest = magnitude;
     }
     p.s1 = s1; p.s2 = s2; voice.in_dc_x = dc_x; voice.in_dc_y = dc_y;
-    const i32 floor = 1 << 6;
-    if (!p.remaining && s1 < floor && s1 > -floor && s2 < floor && s2 > -floor) { p.s1 = p.s2 = 0; }
+    if (!p.remaining && largest < kIdle) {
+        p.spent = 1;
+        p.s1 = p.s2 = 0;
+        for (unsigned i = 0; i < kCombLength; ++i) p.comb[i] = 0;
+    }
 }
 // Part::Squash: a steep S-curve that snaps a fraction towards 0 or 1.
 inline i32 squash(i32 x) {

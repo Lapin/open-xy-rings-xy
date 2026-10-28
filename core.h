@@ -56,7 +56,7 @@ struct String {
     opxy::i32 dc_x, dc_y;        // the bridge's DC blocker
     opxy::i32 noise, bridge;     // dispersion noise, and the curved bridge's last bend, Q7.24
     opxy::i32 c0, c1;            // damping FIR taps, Q31
-    opxy::i32 g, h;              // damping low-pass coefficients, Q31
+    opxy::i32 g, h, gh;          // damping low-pass coefficients and their product, Q31
     opxy::i32 comb;              // Position's pickup, as a fraction of the loop, Q31
     opxy::i32 pickup_mix;        // how much the pickup subtracts, Q31: faded in over the first quarter of Position
     opxy::i32 ap_gain, stretch_point, noise_amount, bridge_curving, ac_blocking, noise_filter, noise_gain;
@@ -71,8 +71,9 @@ struct Plucker {
     opxy::i32 period;            // the comb's delay, Q16 samples
     opxy::i32 gain;              // the comb's feedback, Q31
     opxy::i32 burst;             // the noise's gain, Q28: short bursts lifted
-    opxy::i32 g, h, s1, s2;      // the low-pass
+    opxy::i32 g, h, gh, s1, s2;  // the low-pass, with g h as one coefficient
     opxy::u32 write;
+    opxy::u32 spent;             // the burst over and the comb rung down: silence until the next note
     opxy::i32 comb[kCombLength];
 };
 
@@ -90,7 +91,6 @@ struct Voice {
     Stretch stretch;                                   // the main string's dispersion all-pass
     Plucker plucker;
     opxy::i32 in_dc_x, in_dc_y;                        // the exciter's DC blocker
-    opxy::u32 lfo[kStrings];                           // sympathetic strings' pickup wander, Q32 phase
     opxy::u32 ringing;                                 // strings still carry sound
     opxy::u32 gliding;                                 // sympathetic strings still moving to their notes
 };

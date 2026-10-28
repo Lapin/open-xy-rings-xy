@@ -72,7 +72,7 @@ low-pass placed by Bright, injected as filter state so its gain never needs a
 large intermediate. Rings' 1.4-in, 0.8-out peak limiter follows the sum.
 
 The string models are in `strings.h`: a 2048-sample loop read with Hermite
-interpolation, Rings' damping FIR and a Q 0.5 low-pass placed by Damping and
+interpolation on the main string and linearly on the copies, Rings' damping FIR and a Q 0.5 low-pass placed by Damping and
 Bright, with the loop shortened by that low-pass's phase delay at the note so
 the string stays within a cent across the keyboard. String adds the dispersion
 all-pass, the noise and bridge wobble of the loop length, and the DC block that
@@ -80,10 +80,13 @@ Structure fades in below a quarter. The pluck is Rings' Plucker: a noise burst
 as long as Position's fraction of a period, through a comb and a low-pass eight
 times the strike filter's cutoff. The sympathetic strings glide to their notes,
 are dulled twice by Bright, damped at 0.7 plus 0.27 of Damping and more up the
-bank, with the pickup wandering under a slow cosine, and are fed a fifth of the
-main string's bridge output shared four ways, as Rings does with the internal
-exciter. The loop is held to eight units of headroom so an infinite sustain
-cannot overflow the integer.
+bank, and are fed a fifth of the main string's bridge output shared four ways,
+as Rings does with the internal exciter, and half the pluck. The copies,
+sympathetic or unison, have no pickup comb; the main string's pickup is a
+linear read behind its Hermite one. The loop is held to eight units of headroom
+so an infinite sustain cannot overflow the integer. The plucker stops once its
+burst is over and its comb has rung down, so a note costs the strings alone
+after its first tenth of a second.
 
 A mode that has rung down below -120 dB is skipped until the next strike, so
 a note costs less as it fades. A string voice goes quiet the same way once its
@@ -126,14 +129,20 @@ python ../open-xy/tools/serve_harness.py --preview ../previews/mi_rings-001
 
 The host CPU estimate overstates this machine: the estimate's reference loop
 has no multiplies, so every Q31 multiply counts as the dozen host instructions
-the portable helper takes rather than the Blackfin's one. The hand count is
-about 10 instructions per mode per sample for a long-decay mode and 14 for a
-short one, so 16 modes sit near 10,000 to 14,000 Blackfin instructions per
-voice block and 24 near 15,000 to 21,000. A string is about 30 per sample, so
-the single string sits near 2,500 and the four of the sympathetic models near
-8,000, before the hardware measurement that the catalog requires. The voice
-holds four 2048-sample loops, so the machine declares eight voices. Turn Modes
-down on busy projects until it is measured.
+the portable helper takes rather than the Blackfin's one. Counted in the
+compiled Blackfin code (`python sdk.py compile`, then the loops in
+`analysis/disassembly.txt`), a sample of a copy string is about 65
+instructions, of the main string 115, of the string model's main string with
+dispersion 270, of the plucker 64 while it lasts, and of a mode about 12 to 15.
+Per 64-sample voice block that is about 7,500 for one string, 20,000 for the
+sympathetic models at four strings, 30,000 for the string model with
+dispersion and four unison copies, and 23,000 for the modal body at lush, plus
+the plucker's 4,000 at the start of a note. Seven held notes on the
+sympathetic model at three strings froze the audio engine before the copies
+were made cheap; those counts are from the disassembly, not a measurement,
+which the catalog requires. The voice holds four 2048-sample loops, so the
+machine declares eight voices. Turn Modes down on busy projects until it is
+measured.
 
 ## Hardware and publication
 
