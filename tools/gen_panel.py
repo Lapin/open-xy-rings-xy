@@ -2,18 +2,23 @@
 """Generates panel.svg.fragment: the two-page header block, the Rings-style
 model and modes LEDs with their icons either side, and the nodes the display
 animates: the body circle with its inner rings and strings, the pluck point
-and ripples, and three rings of mandala petals that turn around the body.
+and ripples, and the Rings panel's mandala of paisleys, wavy rings and dots
+that turns around the body.
 
 Only forms seen on hardware: rect, circle, path of M/L/Z, text; at most two
 decimals; explicit paint on every leaf; bound nodes parked off screen.
 """
+import json
 import math
+import os
 
 ID = 'mi_rings'
 CX, CY = 240, 130                      # the body's centre
-BODY = 54                              # the body circle's radius
-INNER = [14, 27, 40]                   # the inner rings
-PETALS_A, PETALS_B, PETALS_C = 12, 16, 24
+BODY = 42                              # the body circle's radius
+INNER = [12, 22, 32]                   # the inner rings
+STRING_HALF = 38                       # half a string's authored length
+PAISLEYS = 12
+REACH = 87                             # the mandala's outermost pixel from the centre
 LED_X = (30, 450)                      # model LEDs left, modes LEDs right
 LED_Y = (82, 114, 146, 178)
 LED_R = 8
@@ -30,13 +35,28 @@ CENTRE = 12
 STRIKE = 13
 FIRST_RIPPLE, RIPPLES = 14, 3          # 14..16
 FIRST_STRING, STRINGS = 17, 4          # 17..20
-FIRST_A = 21                           # 21..32
-FIRST_B = FIRST_A + PETALS_A           # 33..48
-FIRST_C = FIRST_B + PETALS_B           # 49..72
-FIRST_MODEL_LED = FIRST_C + PETALS_C   # 73..76
-FIRST_MODES_LED = FIRST_MODEL_LED + 4  # 77..80
-HALO = FIRST_MODES_LED + 4             # 81 model, 82 modes
+FIRST_OUTLINE = 21                     # 21..32   the paisleys' outlines
+FIRST_INNER_DROP = 33                  # 33..44   their inner teardrops
+FIRST_EYE = 45                         # 45..56   their eyes
+FIRST_PUPIL = 57                       # 57..68   their pupils
+FIRST_DROP = 69                        # 69..80   the small drops
+RING_INNER, RING_OUTER = 81, 82        # the wavy rings
+FIRST_DOT_RING = 83                    # 83..94   the circled dots' rings
+FIRST_DOT = 95                         # 95..106  and dots
+FIRST_MODEL_LED = 107                  # 107..110
+FIRST_MODES_LED = 111                  # 111..114
+HALO = 115                             # 115 model, 116 modes
 NODES = HALO + 2
+
+# The motif lifted from the Rings panel (tools/extract_motif.py), scaled so the
+# outermost dot reaches REACH pixels from the centre.
+MOTIF = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'motif.json')))
+MOTIF_REACH = max(math.hypot(x, y) for x, y in MOTIF['dot_ring'])
+SCALE = REACH / MOTIF_REACH
+
+
+def scaled(points):
+    return [(x * SCALE, y * SCALE) for x, y in points]
 
 
 def num(v):
@@ -93,16 +113,6 @@ def modes_icon(k, cx, cy):
     return [dot(cx + x, cy + y, 1.3, ICON) for x, y in spots]
 
 
-def petal(inner, outer, width, tip_out=True):
-    """A leaf pointing up from radius `inner` to `outer`, in local coordinates
-    about the body's centre; the display turns it around the body."""
-    r0, r1 = (inner, outer) if tip_out else (outer, inner)
-    mid = (r0 + r1) / 2
-    pts = [(0, -r0), (width * 0.62, -(r0 + (mid - r0) * 0.55)), (width, -mid), (width * 0.76, -(mid + (r1 - mid) * 0.6)),
-           (0, -r1), (-width * 0.76, -(mid + (r1 - mid) * 0.6)), (-width, -mid), (-width * 0.62, -(r0 + (mid - r0) * 0.55))]
-    return pts
-
-
 out = [f'<g id="{ID}_panel">',
        '<!-- Two-page header in the proven hurdygurdy form: a black rect covers the stock header,',
        '     then the bar steps and both pages\' titles and values at their resting sizes. -->',
@@ -137,14 +147,19 @@ out.append(f'<circle id="{ID}_node_{STRIKE}" {PARKED} cx="0" cy="0" r="2.5" fill
 for i in range(RIPPLES):
     out.append(circle_node(FIRST_RIPPLE + i, 40))
 for i in range(STRINGS):
-    out.append(node(FIRST_STRING + i, [(-50, -0.4), (50, -0.4), (50, 0.4), (-50, 0.4)], width=0.5))
-out.append('<!-- The mandala: three rings of petals about the body, each turned by the display. -->')
-for i in range(PETALS_A):
-    out.append(node(FIRST_A + i, petal(58, 71, 4.2)))
-for i in range(PETALS_B):
-    out.append(node(FIRST_B + i, petal(73, 82, 2.6, tip_out=False)))
-for i in range(PETALS_C):
-    out.append(node(FIRST_C + i, [(0, -88), (1.8, -86), (0, -84), (-1.8, -86)]))
+    out.append(node(FIRST_STRING + i, [(-STRING_HALF, -0.4), (STRING_HALF, -0.4), (STRING_HALF, 0.4), (-STRING_HALF, 0.4)], width=0.5))
+out.append('<!-- The mandala, lifted from the Rings panel: twelve paisleys, two wavy rings and')
+out.append('     twelve circled dots, every piece authored upright at the centre and turned by the display. -->')
+P = MOTIF['paisley']
+for first, key in ((FIRST_OUTLINE, 'outline'), (FIRST_INNER_DROP, 'inner'), (FIRST_EYE, 'eye'), (FIRST_PUPIL, 'pupil'), (FIRST_DROP, 'drop')):
+    for i in range(PAISLEYS):
+        out.append(node(first + i, scaled(P[key]), width=0.8))
+out.append(node(RING_INNER, scaled(MOTIF['ring_inner']), width=0.8))
+out.append(node(RING_OUTER, scaled(MOTIF['ring_outer']), width=0.8))
+for i in range(PAISLEYS):
+    out.append(node(FIRST_DOT_RING + i, scaled(MOTIF['dot_ring']), width=0.8))
+for i in range(PAISLEYS):
+    out.append(node(FIRST_DOT + i, scaled(MOTIF['dot']), width=0.8))
 out.append('<!-- The LEDs and the halo that marks a change. -->')
 for i in range(4):
     out.append(circle_node(FIRST_MODEL_LED + i, LED_R, stroke='#808080', width=1.2))
