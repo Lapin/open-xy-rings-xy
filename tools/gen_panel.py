@@ -113,11 +113,12 @@ def turned(cx, cy, turn):
 
 
 def drawn_lotus():
-    """The string body's mandala, drawn rather than traced: a ring, eight
-    petals with smaller petals and eyes inside, eight more petals between
-    them, an outer ring and its dots. Pieces are (name, shape, fill, layer, count)."""
+    """The string body's mandala, drawn rather than traced: a ring with a wave
+    around it, eight petals with smaller petals and eyes inside, eight more
+    petals between them, an outer ring and its dots. Pieces are (name, shape, fill, layer, count)."""
     fold = 8
     pieces = [('ring_inner', ('path', circle_path(45)), False, 0, 1),
+              ('wave', ('path', wave_ring(51, 2 * fold, 3.5)), False, 0, 1),
               ('petal', ('path', petal(46, 72, 20)), False, 1, fold),
               ('petal_inner', ('path', petal(49, 64, 10)), False, 2, fold),
               ('eye', ('circle', 0, -54, 2), True, 3, fold),
@@ -125,6 +126,12 @@ def drawn_lotus():
               ('ring_outer', ('path', circle_path(87)), False, 5, 1)]
     pieces += [('dot', ('circle', *turned(0, -79, 360 / fold / 2), 2), True, 6, fold)]
     return fold, pieces, 1.0
+
+
+def wave_ring(radius, waves, height, steps=192):
+    """A ring with `waves` crests, the troughs at angle 0 and every 360/waves."""
+    return [((radius - height * math.cos(waves * t)) * math.sin(t), -(radius - height * math.cos(waves * t)) * math.cos(t))
+            for t in (2 * math.pi * i / steps for i in range(steps))]
 
 
 def circle_path(radius, steps=72):
