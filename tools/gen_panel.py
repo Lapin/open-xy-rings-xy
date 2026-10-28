@@ -46,7 +46,7 @@ REACH = 88                             # a mandala's outermost pixel from the ce
 TOLERANCE = 0.3                        # px: the outlines simplified to what the screen can show
 
 # The motifs lifted from Mutable's panels (tools/extract_motif.py) for the
-# modal, sympathetic and chords bodies; the string body's is drawn here. The
+# modal and chords bodies; the string and sympathetic bodies' are drawn here. The
 # paisley is flipped so its tip points outwards, scaled, and slid out to span
 # PAISLEY_R, with its eye and pupil as circles and a drawn drop, under two wavy
 # rings redrawn with twelve waves so every tip sits in a notch. The traced
@@ -123,8 +123,33 @@ def drawn_lotus():
               ('petal_inner', ('path', petal(56, 67, 9)), False, 2, fold),
               ('eye', ('circle', 0, -60, 2), True, 3, fold),
               ('petal_outer', ('path', petal(54, 86, 24, 360 / fold / 2)), False, 4, fold),
-              ('ring_outer', ('path', circle_path(87)), False, 5, 1)]
-    pieces += [('dot', ('circle', *turned(0, -78, 360 / fold / 2), 2), True, 6, fold)]
+              ('ring_outer', ('path', circle_path(87)), False, 5, 1),
+              ('bead_ring', ('circle', *turned(0, -67, 360 / fold / 2), 6), False, 5, fold),
+              ('bead', ('circle', *turned(0, -67, 360 / fold / 2), 4), True, 5, fold),
+              ('dot', ('circle', *turned(0, -79, 360 / fold / 2), 2), True, 6, fold)]
+    return fold, pieces, 1.0
+
+
+def triangle(r0, r1, half_degrees, turn):
+    """An isosceles triangle on the arc at r0, pointing out to r1, turned."""
+    a = math.radians(half_degrees)
+    pts = [(0, -r1), (r0 * math.sin(a), -r0 * math.cos(a)), (-r0 * math.sin(a), -r0 * math.cos(a))]
+    return [turned(x, y, turn) for x, y in pts]
+
+
+def drawn_sympathetic():
+    """The sympathetic body's mandala, drawn: a ring, twelve interlocking
+    circles, a ring, small circles with triangles between them and a dot in
+    each, and an outer ring."""
+    fold = 12
+    half = 360 / fold / 2
+    pieces = [('ring_inner', ('path', circle_path(45)), False, 0, 1),
+              ('loop', ('circle', 0, -56, 14), False, 1, fold),
+              ('ring_mid', ('path', circle_path(71)), False, 2, 1),
+              ('small', ('circle', 0, -76, 3), False, 3, fold),
+              ('triangle', ('path', triangle(73, 85, 8, half)), False, 4, fold),
+              ('ring_outer', ('path', circle_path(87)), False, 5, 1),
+              ('dot', ('circle', *turned(0, -78.5, half), 1.8), True, 6, fold)]
     return fold, pieces, 1.0
 
 
@@ -262,6 +287,8 @@ for model in MODELS:
         body = 1.0
     elif model == 'string':
         fold, pieces, body = drawn_lotus()
+    elif model == 'sympathetic':
+        fold, pieces, body = drawn_sympathetic()
     else:
         low, high = reach(spec['groups'] + spec.get('single', []))
         k = REACH / high

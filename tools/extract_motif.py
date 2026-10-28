@@ -4,12 +4,11 @@
 CC BY-SA 3.0) into motif.json: polylines in panel points about the knob's
 centre, each motif upright at angle 0, repeated `fold` times by the display.
 
-    pdftocairo -svg rings.ai rings.svg; pdftocairo -svg elements.ai elements.svg
-    python3 tools/extract_motif.py <folder with rings.svg and elements.svg> > tools/motif.json
+    pdftocairo -svg rings.ai rings.svg
+    python3 tools/extract_motif.py <folder with rings.svg> > tools/motif.json
 
   modal        Rings, Frequency knob: a paisley, the wavy rings redrawn by gen_panel
-  (the string body's mandala is drawn by gen_panel.py, not traced)
-  sympathetic  Elements, Flow knob: a spike flanked by two teardrops with eyes
+  (the string and sympathetic bodies' mandalas are drawn by gen_panel.py, not traced)
   chords       Rings, Structure knob: nested rounded triangles under a beaded arc,
                with a flower, leaves and drops
 """
@@ -17,9 +16,9 @@ import json, math, os, re, sys
 import panel_paths as pp
 
 folder = sys.argv[1]
-svgs = {name: open(os.path.join(folder, name + '.svg')).read() for name in ('rings', 'elements')}
+svgs = {name: open(os.path.join(folder, name + '.svg')).read() for name in ('rings',)}
 paths = {name: [m.group(2) for m in re.finditer(r'<path([^>]*) d="([^"]*)"', svg)] for name, svg in svgs.items()}
-CENTRES = {'frequency': (53.83, 94.62), 'structure': (147.06, 94.44), 'mallet': (229.09, 136.33), 'flow': (135.85, 135.85)}
+CENTRES = {'frequency': (53.83, 94.62), 'structure': (147.06, 94.44)}
 
 
 def piece(panel, knob, index, sub, turn=0.0, tolerance=0.05):
@@ -46,20 +45,13 @@ def group(name, points=None, circle_of=None, fill=False, layer=0):
 
 T = 10.0  # the paisley at 350 degrees, turned to upright
 motif = {
-    'source': 'Mutable Instruments panel artwork: Rings (Frequency, Structure) and Elements (Flow), CC BY-SA 3.0',
+    'source': 'Mutable Instruments panel artwork: Rings (Frequency, Structure), CC BY-SA 3.0',
     'units': 'panel points about the knob centre; y down; each motif upright at angle 0',
     'modal': {'fold': 12, 'groups': [
         group('pupil', circle_of=piece('rings', 'frequency', 114, 0, T), fill=True, layer=0),
         group('eye', circle_of=piece('rings', 'frequency', 94, 1, T), layer=1),
         group('inner', piece('rings', 'frequency', 60, 10, T, 0.012), layer=3),
         group('outline', piece('rings', 'frequency', 60, 11, T, 0.03), layer=4),
-    ]},
-    'sympathetic': {'fold': 10, 'groups': [
-        group('eye_left', circle_of=piece('elements', 'flow', 476, 0), layer=0),
-        group('eye_right', circle_of=piece('elements', 'flow', 487, 0), layer=0),
-        group('drop_left', piece('elements', 'flow', 436, 1), layer=1),
-        group('drop_right', piece('elements', 'flow', 447, 1), layer=1),
-        group('spike', piece('elements', 'flow', 332, 1), layer=3),
     ]},
     'chords': {'fold': 4, 'groups': [
         group('triangle_core', piece('rings', 'structure', 192, 1), layer=0),
