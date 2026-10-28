@@ -286,10 +286,14 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
             pos = position + multiply(wave, amount);
             const i32 glide = exp2_scale(kOne, ((bright - kOne) >> 3) * 3);                     // 2^((b - 1) 3)
             const i32 gap = static_cast<i32>(s.target - s.increment);
+            const u32 before = s.increment;
             if (!s.increment) s.increment = s.target;
             else if (gap > -64 && gap < 64) s.increment = s.target;
             else s.increment += static_cast<u32>(multiply(gap, glide));
-            retune = true;
+            // A full retune only while gliding or after a control moved; the
+            // wandering pickup alone is cheap to follow.
+            retune = dirty || s.increment != before;
+            if (!retune) set_pickup(s, pos);
         }
         const i32 index = static_cast<i32>(n * (2147483648u / count));                        // n / count, Q31
         damp += multiply(index, 2040109466 - damp);                                           // towards 0.95 up the bank

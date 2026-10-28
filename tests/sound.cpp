@@ -95,7 +95,7 @@ int main() {
         check(wet.render(20) > dry.render(20) * 10, "Damping does not lengthen the ring");
         Note few(220, 0.5, 0.5, 0.6, 0, 0, 0), many(220, 0.5, 0.5, 0.6, 0, 1, 0);
         few.render(1); many.render(1);
-        check(few.voice.count == 6 && many.voice.count == 24, "Modes count");
+        check(few.voice.count == 2 && many.voice.count == 24, "Modes count");
     }
     {   // Position at the middle strike mutes every second partial: no energy at 880 Hz' neighbours? Check it differs.
         Note end(440, 0.5, 0.5, 0.6, 0, modes12, 0), middle(440, 0.5, 0.5, 0.6, 1, modes12, 0);

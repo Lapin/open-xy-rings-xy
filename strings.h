@@ -75,6 +75,16 @@ inline void lowpass(i32 cutoff, u32 r2, i32& g, i32& h) {
 }
 
 // Configure one string for the block from the controls, as String::ProcessInternal does.
+// Position's pickup along the loop: cheap enough to follow a wandering pickup every block.
+inline void set_pickup(String& s, i32 position) {
+    const i32 off_centre = position - (kOne >> 1);
+    const i32 pickup = (kOne >> 1) - multiply(off_centre < 0 ? -off_centre : off_centre, 2104533974);  // 0.5 - 0.98 |p - 0.5|
+    s.comb = pickup;
+    // Rings' mono outputs carry the loop without the pickup comb; at the bridge
+    // the comb would cancel the string to silence, so it fades in with Position.
+    s.pickup_mix = position >= (kOne >> 2) ? kOne : position * 4;
+}
+
 inline void tune_string(String& s, Stretch* stretch, i32 structure, i32 brightness, i32 damping, i32 position) {
     const i32 delay = loop_delay(s.increment);
     // Dispersion from Structure: none around a quarter, bridge curving below, stretch above.
@@ -151,13 +161,7 @@ inline void tune_string(String& s, Stretch* stretch, i32 structure, i32 brightne
     i32 loop = multiply(delay, compensation) - (1 << 16);                                    // less the FIR's sample
     if (loop < kDelayMin) loop = kDelayMin;
     s.delay = loop;
-    // Position's pickup along the loop.
-    const i32 off_centre = position - (kOne >> 1);
-    const i32 pickup = (kOne >> 1) - multiply(off_centre < 0 ? -off_centre : off_centre, 2104533974);  // 0.5 - 0.98 |p - 0.5|
-    s.comb = pickup;
-    // Rings' mono outputs carry the loop without the pickup comb; at the bridge
-    // the comb would cancel the string to silence, so it fades in with Position.
-    s.pickup_mix = position >= (kOne >> 2) ? kOne : position * 4;
+    set_pickup(s, position);
 }
 
 // --- Rendering -------------------------------------------------------------
