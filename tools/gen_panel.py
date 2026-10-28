@@ -152,16 +152,36 @@ def drawn_sympathetic():
     return fold, pieces, 1.0
 
 
-def arch(r0, r1, half_degrees, turn, steps=8):
-    """A pointed arch: a flat base on the arc at r0, sides bowing out to a tip at r1."""
-    h = math.radians(half_degrees)
-    left, right = (-r0 * math.sin(h), -r0 * math.cos(h)), (r0 * math.sin(h), -r0 * math.cos(h))
-    tip = (0, -r1)
-    bulge = (r0 * math.sin(h) * 1.1, -(r0 + (r1 - r0) * 0.55))       # the sides' control point
-    def bezier(p0, c, p1):
-        return [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0],
-                 (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]) for t in (i / steps for i in range(1, steps))]
-    pts = [left] + bezier(left, (-bulge[0], bulge[1]), tip) + [tip] + bezier(tip, bulge, right) + [right]
+def tower(r_base, r_top, r_tip, w, turn, rungs, steps=10, half=0.4):
+    """A pointed window: walls from r_base up to r_top, sides bowing out to a tip
+    at r_tip, with rungs across the arch drawn as thin detours of the outline."""
+    control = (w * 1.15, -(r_top + (r_tip - r_top) * 0.5))
+    def right(t):                                            # the right side, wall top to tip
+        return ((1 - t) ** 2 * w + 2 * (1 - t) * t * control[0],
+                (1 - t) ** 2 * -r_top + 2 * (1 - t) * t * control[1] + t * t * -r_tip)
+    fine = [right(i / 400) for i in range(401)]
+    def x_at(y):                                             # the side's x at height y (y negative)
+        return min(fine, key=lambda p: abs(p[1] - y))[0]
+    pts = [(-w, -r_base), (-w, -r_top)]
+    pts += [(-x, y) for x, y in (right(i / steps) for i in range(1, steps))]
+    pts.append((0, -r_tip))
+    down = [right(i / steps) for i in range(steps - 1, 0, -1)]
+    pending = sorted(rungs)                                  # outermost first, since y grows down the side
+    pending = sorted(rungs, reverse=True)
+    for x, y in down:
+        while pending and -pending[0] <= y:                  # passed a rung's height: detour across
+            r = pending.pop(0)
+            xr = x_at(-r)
+            pts += [(xr, -r), (-xr + half, -r), (-xr + half, -r + 2 * half), (xr, -r + 2 * half)]
+        pts.append((x, y))
+    pts += [(w, -r_top), (w, -r_base)]
+    return [turned(x, y, turn) for x, y in pts]
+
+
+def veined(r0, r1, width, turn=0.0, half=0.4):
+    """A lens petal with a vein up its middle, as one outline."""
+    pts = petal(r0, r1, width, 0, 1.0)
+    pts += [(half, -(r0 + 2.5)), (half, -(r1 - 3)), (-half, -(r1 - 3)), (-half, -(r0 + 2.5))]
     return [turned(x, y, turn) for x, y in pts]
 
 
@@ -184,17 +204,19 @@ def crown(r0, r1, fingers, fill=0.55, tip_steps=6):
 
 def drawn_chords():
     """The chords body's mandala, drawn as a layered flower: three rings of
-    lens petals, each turned half a step from the last, a row of pointed
-    arches, dots, a ring and a fringe of rounded fingers."""
+    lens petals, each turned half a step from the last, the inner two veined,
+    pointed windows with rungs over the second, ringed dots, a ring and a
+    fringe of rounded fingers."""
     fold = 8
     half = 360 / fold / 2
-    pieces = [('petal_a', ('path', petal(42, 54, 8, 0, 1.0)), False, 0, fold),
-              ('petal_b', ('path', petal(42, 56, 10, half, 1.0)), False, 1, fold),
+    pieces = [('petal_a', ('path', veined(42, 54, 8)), False, 0, fold),
+              ('petal_b', ('path', veined(42, 56, 10, half)), False, 1, fold),
               ('petal_c', ('path', petal(44, 70, 15, 0, 1.0)), False, 2, fold),
-              ('arch', ('path', arch(57, 72, 8, half)), False, 3, fold),
-              ('dot', ('circle', *turned(0, -73.5, half / 2), 1.6), True, 4, 2 * fold),
-              ('ring', ('path', circle_path(76)), False, 5, 1),
-              ('fringe', ('path', crown(76.5, 88, 40)), False, 6, 1)]
+              ('tower', ('path', tower(42, 57, 72, 7, half, (59.5, 63, 66.5))), False, 3, fold),
+              ('dot', ('circle', 0, -73.6, 1), True, 4, fold),
+              ('dot_ring', ('circle', 0, -73.6, 2.4), False, 4, fold),
+              ('ring', ('path', circle_path(77)), False, 5, 1),
+              ('fringe', ('path', crown(77.5, 88, 40)), False, 6, 1)]
     return fold, pieces, 1.0
 
 

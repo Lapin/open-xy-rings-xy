@@ -42,8 +42,9 @@ code, eight petals with smaller petals and eyes inside, eight more between
 them with beads and dots, in two rings; the sympathetic body has a drawn
 ring of twelve interlocking circles, then small circles with triangles and
 dots between them, in rings; the chords body is a drawn flower: three rings of lens petals,
-each turned half a step from the last, pointed arches over them, dots, a
-ring and a fringe of rounded fingers. The body circle shrinks to
+each turned half a step from the last, the inner two veined, pointed
+windows with rungs over the second, ringed dots, a ring and a fringe of
+rounded fingers. The body circle shrinks to
 sit inside the denser ones. The mandala turns slowly at rest, is kicked by
 every note and eases back over Damping's time; Structure brings its pieces in
 from the smallest out, and every note lights them in that order, a ripple from
