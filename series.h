@@ -47,6 +47,11 @@ inline opxy::u32 mode_choice(opxy::i32 control) {
 inline opxy::u32 string_count(opxy::i32 control) { return mode_choice(control) + 1; }
 // The modal body's partial count.
 inline opxy::u32 mode_count(opxy::i32 control) { return kModeCounts[mode_choice(control)]; }
+// How far lush eases Rings' fall of Q up the partials, so its top partials
+// ring at any Bright: at Bright 50 Rings leaves nothing above the eighth, and
+// full and lush would be the same sound. Q31.
+const opxy::i32 kModeEase[kModeChoices] = {0, 0, 0, 1610612736};  // 0, 0, 0, 0.75
+inline opxy::i32 mode_ease(opxy::i32 control) { return kModeEase[mode_choice(control)]; }
 
 struct Series {
     opxy::u32 count;

@@ -101,7 +101,7 @@ inline i32 lose(i32 x, i32 loss, u32& carry) {
 }
 
 // Tune every mode to the note and the controls.
-void tune(Voice& voice, i32 structure, i32 brightness, i32 damping, i32 position, u32 count, u32 pitch) {
+void tune(Voice& voice, i32 structure, i32 brightness, i32 damping, i32 position, u32 count, i32 ease, u32 pitch) {
     Series series;
     compute_series(structure, position, count, series);
     const i32 f0 = static_cast<i32>(pitch >> 4);     // Q28 cycles per sample
@@ -115,6 +115,7 @@ void tune(Voice& voice, i32 structure, i32 brightness, i32 damping, i32 position
     attenuation = multiply(attenuation, attenuation);
     const i32 bright = multiply(squared, kOne - multiply(attenuation, kFifth));
     i32 q_loss = kOne - multiply(kOne - bend(bright), kPoint85);  // 0.15 + 0.85 bright (2 - bright)
+    q_loss += multiply(ease, kOne - q_loss);                       // lush keeps its top partials ringing
     const i32 q_loss_rate = multiply(bend(structure), kTenth);
     i32 harmonic = 0;  // Q28
     // A partial that joins a ringing note takes the top ringing partial's
@@ -410,7 +411,7 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
         voice.pending = 0;
     }
     if (dirty) {
-        tune(voice, harmonic_centre(structure), brightness, damping, position, mode_count(static_cast<i32>(modes_control)), increment);
+        tune(voice, harmonic_centre(structure), brightness, damping, position, mode_count(static_cast<i32>(modes_control)), mode_ease(static_cast<i32>(modes_control)), increment);
         voice.structure = structure;
         voice.brightness = brightness;
         voice.damping = damping;
