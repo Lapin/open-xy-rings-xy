@@ -6,8 +6,8 @@ strikes a bank of up to 24 two-pole resonators tuned to a partial series that
 Structure bends from compressed, through harmonic, to stretched and bell-like.
 String: a plucked Karplus-Strong loop with Rings' damping filters, dispersion
 from Structure and a curved bridge. Sympathetic: the plucked string drives three
-more strings tuned by Structure along Rings' ladder of octaves and fifths, which
-swell and ring on after it. Chords: the same, with the main string an octave below
+more strings tuned by Structure along Rings' ladder of octaves and fifths, fed
+half the pluck and the main string's bridge, which swell and ring on after it. Chords: the same, with the main string an octave below
 the note and the three strings quantized to one of Rings' eleven chords by
 Structure, so they sit on its harmonics and ring out. In every model Bright sets the
 excitation's colour and how quickly the highs fade, Damping the decay, Position

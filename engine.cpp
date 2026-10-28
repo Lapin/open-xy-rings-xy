@@ -310,8 +310,11 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
         if (retune) tune_string(s, stretch, stiffness, bright, damp, pos);
         render_string(s, stretch, voice.seed, n == 0 ? input : bridge, sum, n == 0 ? bridge : 0);
         if (n == 0 && count > 1) {
+            // The other strings hear the bridge, as in Rings, and half the pluck
+            // itself, as Rings' strings do from an external exciter: with the
+            // internal one alone they barely spoke, and the bank's size was lost.
             const i32 feed = 107374182;                                                        // 0.2 / 4
-            for (unsigned i = 0; i < opxy::block_frames; ++i) bridge[i] = multiply(bridge[i], feed);
+            for (unsigned i = 0; i < opxy::block_frames; ++i) bridge[i] = multiply(bridge[i], feed) + (input[i] >> 1);
         }
     }
     // Rung down below -120 dB with the pluck spent: nothing until the next note.
@@ -362,13 +365,13 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
         voice.structure = structure; voice.brightness = brightness; voice.damping = damping;
         voice.position = position; voice.modes_control = modes_control; voice.pitch = increment; voice.model = model;
         // Level trims so the strings strike about as loud as the modal body
-        // (measured at the defaults): string 1.6, chords 2, sympathetic 1.8
-        // until its fourth string, the unison twin, which rings loud: 1.2.
+        // (measured at the defaults): string 1.6; sympathetic 1.8 alone and
+        // 1.2 with more strings; chords 2 alone and 1.6 with more.
         static const i32 kTrimHalf[kModels][kStrings] = {
             {0, 0, 0, 0},
             {1717986918, 1717986918, 1717986918, 1717986918},
-            {1932735283, 1932735283, 1932735283, 1288490189},
-            {2147483647, 2147483647, 2147483647, 2147483647}};
+            {1932735283, 1288490189, 1288490189, 1288490189},
+            {2147483647, 1717986918, 1717986918, 1717986918}};
         const u32 strings = model == kString ? 1 : string_count(static_cast<i32>(modes_control));
         for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = multiply(sum[i], kTrimHalf[model][strings - 1]) * 2;
         if (model == kString) limit(voice, sum, output, kPoint4, kOutput);
