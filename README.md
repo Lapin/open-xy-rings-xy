@@ -141,20 +141,21 @@ the plucker's 4,000 at the start of a note. Seven held notes on the
 sympathetic model at three strings froze the audio engine before the copies
 were made cheap; those counts are from the disassembly, not a measurement,
 which the catalog requires. The voice holds four 2048-sample loops, so the
-machine declares eight voices. Turn Size down on busy projects until it is
-measured.
+machine declares eight voices. Turn Size down on busy projects: four strings,
+lush and the string model are above the catalog's measured workload.
 
 ## Hardware and publication
 
 Follow the SDK's [firmware build guide](https://github.com/etcetc000/open-xy/blob/staging/docs/build.md)
 and [hardware profiling workflow](https://github.com/etcetc000/open-xy/blob/staging/docs/profiling.md).
-Measured on an OP-XY on 2026-10-28 at commit a97ba6f with the SDK's
-`opxy-synth-c8-v1` workload (note 60, every control at its midpoint: the
-sympathetic model at two strings): 1.41% of the stock block budget per voice,
-median of three runs, against Karplus at 3.0% in the same runs. The report is
-[cpu-report.md](cpu-report.md) and the catalog field [cpu.json](cpu.json);
-both are bound to that commit, so a new machine revision needs a new
-measurement. Keep firmware and stock content outside every checkout.
+The catalog's `cpu` record for this machine is measured on an OP-XY with the
+SDK's `opxy-synth-c8-v1` workload: note 60 with every control at its midpoint,
+which here is the sympathetic model at two strings. The record names the
+tagged commit it was measured at and lives in the catalog entry, with the
+generated report in an evidence issue, so that adding a readout never changes
+the commit it measured. Four strings, lush and the string model are heavier
+than that workload and are not measured. Keep firmware and stock content
+outside every checkout.
 
 The code in this folder is covered by [LICENSE](LICENSE). The partial series,
 string loop, decay rules and exciters follow Mutable Instruments Rings,
