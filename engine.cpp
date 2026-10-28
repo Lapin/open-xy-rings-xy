@@ -334,6 +334,10 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
         render_strings(voice, model, structure, brightness, damping, position, increment, dirty, sum);
         voice.structure = structure; voice.brightness = brightness; voice.damping = damping;
         voice.position = position; voice.modes_control = modes_control; voice.pitch = increment; voice.model = model;
+        // Level trims so the strings strike about as loud as the modal body
+        // (measured at the defaults): string 1.6, sympathetic 1.2, chords 2.
+        static const i32 kTrimHalf[kModels] = {0, 1717986918, 1288490189, 2147483647};
+        for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = multiply(sum[i], kTrimHalf[model]) * 2;
         if (model == kString) limit(voice, sum, output, kPoint4, kOutput);
         else limit(voice, sum, output, 0, kOutputUnity);
         return;
