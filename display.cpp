@@ -3,13 +3,14 @@
 // the middle the body, a circle with a dot at its centre, inside a mandala of
 // petals that turns slowly, kicks on every note and eases back as the note
 // fades. Structure adds petals, Bright lights the body's inside,
-// Damping sets how long the kick lasts, Position places the pluck point and the
-// ripples that spread from it. Each model has its own mandala: Rings'
+// Damping sets how long the kick lasts, Position shapes the body's inside.
+// Each model has its own mandala: Rings'
 // Frequency paisleys for the modal body, a lotus for the string body, circles
 // of leaf veins for the sympathetic, a layered flower for the chords. Inside
 // the body each model has its own life, drawn fresh every frame as mutable
 // outlines: rings for the modal body, a meter for the string body, S-waves
-// that bend for the sympathetic, lines that vibrate for the chords.
+// that bend for the sympathetic, lines that vibrate for the chords. Position
+// adds rings, adds bars from the edges, and thickens the lines.
 #include "display.h"
 #include "core.h"
 #include "series.h"
@@ -20,8 +21,6 @@ using opxy::i32;
 using opxy::u32;
 using namespace opxy::draw;
 const i32 kCentreX = 240 * unit, kCentreY = 130 * unit;
-const i32 kBodyRadius = 40 * unit;
-const i32 kAuthoredRipple = 40;                                 // the ripple circles' r
 const i32 kExpired = 4 * unit;                                  // the longest kick, seconds
 const i32 kHaloLife = unit;                                     // a change's halo, one second
 const i32 kRestSpeed = 40;                                      // tenths of a degree per second at rest
@@ -100,8 +99,9 @@ inline void s_wave(Frame::path_type& path, i32 x0, i32 half, i32 amplitude) {
         put(pen, xs[i] + kRibbon, -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)));
 }
 // A string across the body at row y0 (px), from edge to edge, standing in its
-// `mode`th harmonic with the given amplitude (Q10 px): 32 points out, 32 back.
-inline void string_line(Frame::path_type& path, i32 y0, i32 half, i32 mode, i32 amplitude) {
+// `mode`th harmonic with the given amplitude (Q10 px), `thickness` (Q10 px)
+// below its upper edge: 32 points out, 32 back.
+inline void string_line(Frame::path_type& path, i32 y0, i32 half, i32 mode, i32 amplitude, i32 thickness = kRibbon) {
     Pen pen = {path, 0};
     const u32 steps = kPathPoints / 2 - 1;
     i32 ys[kPathPoints / 2];
@@ -110,7 +110,7 @@ inline void string_line(Frame::path_type& path, i32 y0, i32 half, i32 mode, i32 
     for (u32 i = 0; i <= steps; ++i)
         put(pen, -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)), ys[i]);
     for (u32 i = steps + 1; i-- > 0;)
-        put(pen, -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)), ys[i] + kRibbon);
+        put(pen, -half + (2 * half * static_cast<i32>(i) / static_cast<i32>(steps)), ys[i] + thickness);
 }
 
 // Places a petal at the body's centre, turned by tenths of a degree, or hides it.
@@ -125,8 +125,6 @@ inline void petal(F& frame, u32 node, i32 tenths, i32 shade, Paint paint = strok
 inline void display_reset(DisplayState& state) {
     state.initialized = state.track = state.previous_event = 0;
     state.age = kExpired;
-    for (u32 i = 0; i < kRipples; ++i) state.ripple_age[i] = kExpired;
-    state.next_ripple = 0;
     for (u32 i = 0; i < kWaves; ++i) state.wave_age[i] = kExpired;
     state.next_wave = 0;
     state.angle = 0;
@@ -156,21 +154,17 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const i32 strike = clamp(input.slots[5], 0, opxy::q31::maximum);
     const i32 boost = unit + (strike >> 21);                             // Q10, 1..2: Strike exaggerates the insides' motion
 
-    // Time: a note resets the kick and starts a ripple; a changed choice lights a halo.
+    // Time: a note resets the kick and starts a light wave; a changed choice lights a halo.
     const i32 elapsed = clamp(input.elapsed, 0, kExpired);
     const bool fresh = !state.initialized || state.track != input.track;
     if (fresh || input.reduced_motion) {
         state.age = kExpired;
-        for (u32 i = 0; i < kRipples; ++i) state.ripple_age[i] = kExpired;
         for (u32 i = 0; i < kWaves; ++i) state.wave_age[i] = kExpired;
     } else {
         state.age = clamp(state.age + elapsed, 0, kExpired);
-        for (u32 i = 0; i < kRipples; ++i) state.ripple_age[i] = clamp(state.ripple_age[i] + elapsed, 0, kExpired);
         for (u32 i = 0; i < kWaves; ++i) state.wave_age[i] = clamp(state.wave_age[i] + elapsed, 0, kExpired);
         if (input.track < 8 && input.note_serial != state.previous_event) {
             state.age = 0;
-            state.ripple_age[state.next_ripple] = 0;
-            state.next_ripple = (state.next_ripple + 1) % kRipples;
             state.wave_age[state.next_wave] = 0;
             state.next_wave = (state.next_wave + 1) % kWaves;
         }
@@ -202,13 +196,18 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     const Mandala& mandala = kMandalas[model];
     const i32 body = mandala.body_scale;                                 // Q10
     const i32 swell = (unit + (flash * 40 >> 10)) * body >> 10;
-    const i32 body_radius = kBodyRadius * body >> 10;
     place(frame, kBodyNode, kCentreX, kCentreY, swell, static_cast<u32>(clamp(8 + glow, 1, 15)), stroke);
     place(frame, kCentreNode, kCentreX, kCentreY, unit, static_cast<u32>(clamp(9 + glow, 1, 15)), fill_and_stroke);
     const i32 inside = clamp(bright + glow, 1, 15);
+    const i32 reach = position >> 21;                                    // 0..1023: how far Position goes
+    // The modal body: rings from the centre out, as many as Position asks
+    // for, none at 0 and six at full, the newest fading in. Authored at the
+    // body's radius, so ring i sits at (i + 1) / 7 of it.
     for (u32 i = 0; i < kInnerRings; ++i) {
-        if (model != kModal) { hide(frame, kFirstInner + i); continue; }
-        place(frame, kFirstInner + i, kCentreX, kCentreY, swell, static_cast<u32>(inside), stroke);
+        const i32 shown = clamp(reach * static_cast<i32>(kInnerRings) - static_cast<i32>(i) * unit, 0, unit);
+        const i32 shade = inside * shown >> 10;
+        if (model != kModal || shade <= 0) { hide(frame, kFirstInner + i); continue; }
+        place(frame, kFirstInner + i, kCentreX, kCentreY, swell * static_cast<i32>(i + 1) / 7, static_cast<u32>(shade), stroke);
     }
     // The mutable outlines, drawn fresh every frame for the model and placed at
     // the body's centre at its swell: the key changes with them so the
@@ -219,13 +218,16 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     if (model == kString) {
         // The meter: a line at rest, its seven bars rising to a loose spectrum
         // on a note, each wavering at its own rate, and settling as it fades.
+        // Position brings the bars in from the centre: one at 0, all seven at full.
         static const i32 kLevel[kMeterBars] = {600, 820, 940, 1024, 900, 760, 560};   // Q10 of the bar's reach
         static const i32 kRate[kMeterBars] = {37, 29, 47, 23, 53, 31, 43};
         static const i32 kPhase[kMeterBars] = {0, 500, 1000, 1500, 2000, 2500, 3000};
         i32 height[kMeterBars];
         for (u32 i = 0; i < kMeterBars; ++i) {
             const i32 waver = unit - (unit - sine((state.age * kRate[i] + kPhase[i]) % 3600)) * 350 / 2048;  // 0.65..1
-            const i32 level = clamp(((kLevel[i] * flash >> 10) * boost >> 10) * waver >> 10, 0, unit);    // Q10
+            const i32 pair = i < 3 ? 3 - static_cast<i32>(i) : static_cast<i32>(i) - 3;                  // 0 centre, 3 outermost
+            const i32 shown = clamp(reach * 3 - (pair - 1) * unit, 0, unit);                                  // Q10
+            const i32 level = clamp((((kLevel[i] * flash >> 10) * boost >> 10) * waver >> 10) * shown >> 10, 0, unit);  // Q10
             height[i] = kEdge + 20 + (kMeterReach[i] * level);                                           // Q10 px
         }
         meter(frame.paths[0], height);
@@ -239,12 +241,13 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
     } else if (model == kChords) {
         // Three strings across the body, standing still at rest and shaking in
         // their harmonics while a note rings, their ends fixed at the edge.
+        // Position thickens them, 0.8 px to 4 px (a band: outlines are not filled).
         static const i32 kRow[3] = {-18, 0, 18}, kHalf[3] = {35 * unit + 102, 39 * unit + 410, 35 * unit + 102};
         static const i32 kMode[3] = {2, 3, 1}, kRate[3] = {33, 41, 29};
         for (u32 i = 0; i < 3; ++i) {
             const i32 shake = sine((state.age * kRate[i] + static_cast<i32>(i) * 1200) % 3600);
             const i32 amplitude = (((3 * unit + 205) * flash >> 10) * boost >> 10) * shake >> 10;
-            string_line(frame.paths[i], kRow[i], kHalf[i], kMode[i], amplitude);
+            string_line(frame.paths[i], kRow[i], kHalf[i], kMode[i], amplitude, kRibbon + (reach * 3277 >> 10));
         }
         drawn = 3;
     }
@@ -258,28 +261,10 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         }
     }
 
-    // The pluck point: Position runs along the body's diameter from the left
-    // edge (0) to the right (1), through the centre at 0.5. Strike fattens it on the modal body.
-    const i32 strike_x = kCentreX - body_radius + ((((position >> 16) * 80 >> 5) * body) >> 10);
-    const i32 strike_scale = unit + (model == 0 ? (strike >> 21) * 2 : 0) + flash;
-    place(frame, kStrikeNode, strike_x, kCentreY, clamp(strike_scale, unit / 2, 2 * unit),
-          static_cast<u32>(8 + (flash * 7 >> 10)), fill_and_stroke);
-
-    // Ripples: circles growing out of the pluck point and fading over the kick's life.
-    for (u32 i = 0; i < kRipples; ++i) {
-        const u32 node = kFirstRipple + i;
-        const i32 progress = state.ripple_age[i] * rate >> 10;  // Q10, 1 at the end of life
-        if (input.reduced_motion || progress <= 0 || progress >= unit) { hide(frame, node); continue; }
-        const i32 radius = (4 * unit + (progress * 36)) * body >> 10;   // 4..40 px, to the body's edge
-        const i32 shade = clamp(((unit - progress) * (4 + bright)) >> 10, 0, 15);
-        if (!shade) { hide(frame, node); continue; }
-        place(frame, node, strike_x, kCentreY, clamp(radius / kAuthoredRipple, unit / 8, 2 * unit), static_cast<u32>(shade), stroke);
-    }
-
     // The mandala: the model's own, lifted from Mutable's panels, its pieces in
     // layers from the smallest out. Structure brings the layers in in that
-    // order, and a note lights them in that order too, a ripple from the centre
-    // out over the kick's life. Each recent note has its own ripple, so a new
+    // order, and a note lights them in that order too, a wave from the centre
+    // out over the kick's life. Each recent note has its own wave, so a new
     // note never cancels one in flight. The other models' pieces stay hidden.
     const i32 detail = structure >> 21;                                  // 0..1023
     i32 layer[kLayers];

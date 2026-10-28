@@ -3,16 +3,16 @@
 #include <opxy/types.hpp>
 
 namespace mi_rings {
-const opxy::u32 kPaths = 4, kPathPoints = 64, kHeaderNode = 4, kBodyNode = 12, kFirstInner = 13;
-const opxy::u32 kCentreNode = 16, kStrikeNode = 17, kFirstRipple = 18, kRipples = 3;
-const opxy::u32 kFirstMandala = 21, kModelLed = 242, kModesLed = 243, kHaloNode = 244, kNodes = 246;
+const opxy::u32 kPaths = 4, kPathPoints = 64, kHeaderNode = 4, kBodyNode = 12;
+const opxy::u32 kFirstInner = 13, kInnerRings = 6, kCentreNode = 19;
+const opxy::u32 kFirstMandala = 20, kModelLed = 241, kModesLed = 242, kHaloNode = 243, kNodes = 245;
 const opxy::u32 kMandalaGroups = 10;
 struct MandalaGroup { opxy::u16 first; opxy::u8 count, layer, fill; };
 struct Mandala { opxy::u32 fold; opxy::i32 body_scale; MandalaGroup groups[10]; };
 const Mandala kMandalas[4] = {
-    {12, 1024, {{21, 12, 0, 1}, {33, 12, 1, 0}, {45, 12, 2, 0}, {57, 12, 3, 0}, {69, 12, 4, 0}, {81, 1, 5, 0}, {82, 1, 5, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // modal
-    {8, 1024, {{83, 1, 0, 0}, {84, 1, 0, 0}, {85, 8, 1, 0}, {93, 8, 2, 0}, {101, 8, 3, 1}, {109, 8, 4, 0}, {117, 1, 5, 0}, {118, 8, 5, 0}, {126, 8, 5, 1}, {134, 8, 6, 1}}},  // string
-    {12, 1024, {{142, 12, 0, 0}, {154, 12, 1, 0}, {166, 1, 2, 0}, {167, 12, 3, 0}, {179, 12, 4, 0}, {191, 1, 5, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // sympathetic
-    {8, 1024, {{192, 8, 0, 0}, {200, 8, 1, 0}, {208, 8, 2, 0}, {216, 8, 3, 0}, {224, 16, 4, 0}, {240, 1, 5, 0}, {241, 1, 6, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // chords
+    {12, 1024, {{20, 12, 0, 1}, {32, 12, 1, 0}, {44, 12, 2, 0}, {56, 12, 3, 0}, {68, 12, 4, 0}, {80, 1, 5, 0}, {81, 1, 5, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // modal
+    {8, 1024, {{82, 1, 0, 0}, {83, 1, 0, 0}, {84, 8, 1, 0}, {92, 8, 2, 0}, {100, 8, 3, 1}, {108, 8, 4, 0}, {116, 1, 5, 0}, {117, 8, 5, 0}, {125, 8, 5, 1}, {133, 8, 6, 1}}},  // string
+    {12, 1024, {{141, 12, 0, 0}, {153, 12, 1, 0}, {165, 1, 2, 0}, {166, 12, 3, 0}, {178, 12, 4, 0}, {190, 1, 5, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // sympathetic
+    {8, 1024, {{191, 8, 0, 0}, {199, 8, 1, 0}, {207, 8, 2, 0}, {215, 8, 3, 0}, {223, 16, 4, 0}, {239, 1, 5, 0}, {240, 1, 6, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}},  // chords
 };
 }

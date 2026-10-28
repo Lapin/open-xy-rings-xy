@@ -33,7 +33,7 @@ The screen shows both pages in the shared header. Either side sit the Rings
 panel's LEDs: the four models on the left (rings, bars, waves, a chord stack),
 the four Modes steps on the right (one to four dots), the chosen one lit and
 haloed for a second when it changes. In the middle is the body: a circle with
-a dot at its centre, lit inside by Bright: three rings for the modal body; a
+a dot at its centre, lit inside by Bright: rings for the modal body; a
 line across the string body whose seven bars rise, up and down, into a loose
 spectrum on a note and settle as it fades; three S-waves down the sympathetic
 body that bend more while a note rings; three strings across the chords body
@@ -51,9 +51,10 @@ between, a ring and a fringe of rounded fingers. The body circle shrinks to
 sit inside the denser ones. The mandala turns slowly at rest, is kicked by
 every note and eases back over Damping's time; Structure brings its pieces in
 from the smallest out, and every note lights them in that order, a ripple from
-the centre out, each recent note with its own. Position places the pluck point
-on the body's diameter and a note sends ripples out from it. Reduced motion
-holds the mandala still.
+the centre out, each recent note with its own. Position shapes the inside:
+more rings on the modal body, more bars on the string body from the centre
+out, thicker strings on the chords body. Strike exaggerates every inside's
+motion. Reduced motion holds the mandala still.
 
 ## Implementation
 

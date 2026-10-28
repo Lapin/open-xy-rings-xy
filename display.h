@@ -7,17 +7,15 @@ namespace mi_rings {
 // The node map, shared with tools/gen_panel.py and laid out in mandala.h
 // (generated with the artwork): the four mutable outlines that draw the
 // string, sympathetic and chords bodies' insides; the header bar; the body
-// circle, its inner rings, the centre dot, the pluck point and ripples; the
+// circle, its inner rings and the centre dot; the
 // four mandalas, one per model; the lit model LED, the lit modes LED and the
 // two halos.
 using Frame = opxy::draw::Frame<kPaths, kPathPoints, kNodes, 16, 16>;
-const opxy::u32 kInnerRings = 3, kWaves = 4;
+const opxy::u32 kWaves = 4;
 const opxy::u32 kLayers = 7;
 struct DisplayState {
     opxy::u32 initialized, track, previous_event;
     opxy::i32 age;                      // since the last note, Q10 seconds, saturating
-    opxy::i32 ripple_age[kRipples];
-    opxy::u32 next_ripple;
     opxy::i32 wave_age[kWaves];         // the mandala's light ripples, one per recent note
     opxy::u32 next_wave;
     opxy::i32 angle;                    // the mandala's turn, tenths of a degree, 0..3599

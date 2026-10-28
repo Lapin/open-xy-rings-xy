@@ -40,7 +40,7 @@
     {
       "id": "position",
       "label": "Position",
-      "default": 0.25,
+      "default": 0.5,
       "mapping": {
         "kind": "linear",
         "minimum": 0,
@@ -156,11 +156,11 @@
     "sharedBytes": 0,
     "outputPeakQ31": 1073741824,
     "display": {
-      "stateBytes": 96,
+      "stateBytes": 80,
       "stateAlignment": 4,
       "paths": 4,
       "points": 64,
-      "nodes": 246,
+      "nodes": 245,
       "texts": 16,
       "palette": 16
     }
