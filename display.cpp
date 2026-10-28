@@ -73,22 +73,25 @@ inline void display_reset(DisplayState& state) {
 }
 
 inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& frame) {
-    const char* const titles[8] = {"Struct", "Bright", "Damping", "Position", "Modes", "Strike", "Damping", "Position"};
+    const char* const titles[8] = {"Struct", "Bright", "Damping", "Position", "Model", "Modes", "Strike", "Position"};
     char values[8][header_capacity];
     for (u32 i = 0; i < 8; ++i) header_amount(values[i], header_capacity, input.slots[i]);
-    const u32 count = mode_count(input.slots[4]);
-    values[4][0] = static_cast<char>('0' + count / 10);
-    values[4][1] = static_cast<char>('0' + count % 10);
-    values[4][2] = 0;
-    if (count < 10) { values[4][0] = values[4][1]; values[4][1] = 0; }
-    const opxy::u8 slots[2][4] = {{0, 1, 2, 3}, {4, 5, 2, 3}};
+    const u32 count = mode_count(input.slots[5]);
+    values[5][0] = static_cast<char>('0' + count / 10);
+    values[5][1] = static_cast<char>('0' + count % 10);
+    values[5][2] = 0;
+    if (count < 10) { values[5][0] = values[5][1]; values[5][1] = 0; }
+    static const char* const kModelNames[4] = {"modal", "string", "sympath", "chords"};
+    const u32 model = (static_cast<u32>(clamp(input.slots[4], 0, opxy::q31::maximum)) >> 16) * 4 >> 15;
+    opxy::draw::copy(values[4], header_capacity, kModelNames[model > 3 ? 3 : model]);
+    const opxy::u8 slots[2][4] = {{0, 1, 2, 3}, {4, 5, 6, 3}};
     page_header(state.header, input, frame, titles, values, 0, slots);
 
     const i32 structure = clamp(input.slots[0], 0, opxy::q31::maximum);
     const i32 brightness = clamp(input.slots[1], 0, opxy::q31::maximum);
     const i32 damping = clamp(input.slots[2], 0, opxy::q31::maximum);
     const i32 position = clamp(input.slots[3], 0, opxy::q31::maximum);
-    const i32 strike = clamp(input.slots[5], 0, opxy::q31::maximum);
+    const i32 strike = clamp(input.slots[6], 0, opxy::q31::maximum);
     if (state.key == 0 || structure != state.structure || position != state.position || count != state.count)
         rings(state, structure, position, count);
 

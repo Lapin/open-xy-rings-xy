@@ -1,9 +1,9 @@
-// mi_rings: a modal resonator after Mutable Instruments Rings' modal mode
-// (rings/dsp/resonator.cc and part.cc, MIT, Emilie Gillet), rewritten in
-// fixed point for the OP-XY. A note strikes a bank of up to 24 two-pole
-// resonators tuned to a partial series that Structure bends from compressed,
-// through harmonic, to bell-like; Bright sets the strike's colour and how fast
-// the high partials fade; Damping the decay; Position the strike point.
+// mi_rings: Mutable Instruments Rings' resonator models (rings/dsp, MIT,
+// Emilie Gillet), rewritten in fixed point for the OP-XY. Modal: a note
+// strikes a bank of up to 24 two-pole resonators tuned to a partial series that
+// Structure bends from compressed, through harmonic, to bell-like; Bright sets
+// the strike's colour and how fast the high partials fade; Damping the decay;
+// Position the strike point. The string models are in strings.h.
 #include "core.h"
 #include <opxy/q31.hpp>
 
@@ -25,6 +25,7 @@ const i32 kPoint85 = 1825361101;        // 0.85
 const i32 kPoint4 = 858993459;          // 0.4: the limiter's 1.4 pre-gain
 const i32 kRelease = 2748779;           // the limiter's 0.00002 per sample, over a block
 const i32 kOutput = 1202590843;         // 0.56: Rings' 1.4 x 0.8, halved for the final shift
+const i32 kOutputUnity = 858993459;     // 0.4: the same for the string models' gain of 1
 const i32 kFrequencyLimit = 2055208;    // 0.49 cycles per sample, Q22: the band's top, as in Rings
 const i32 kCutoffLimit = 515396075;     // 0.24 cycles per sample, Q31: the strike filter's reach
 const i32 kHeavy = 1 << 17;             // a loss per sample from 2^-14: applied every sample
@@ -210,17 +211,102 @@ inline void excite(Voice& voice, i32* input) {
         e.active = 0;
     }
 }
+#include "strings.h"
+
+// The Model enum choice from its Q31 word.
+inline u32 model_choice(i32 control) {
+    u32 choice = (static_cast<u32>(control < 0 ? 0 : control) >> 16) * kModels >> 15;
+    return choice >= kModels ? kModels - 1 : choice;
+}
+
+// Rings' limiter: pre-gain in, hold the block's peak, release slowly, 0.8 out, then our half.
+inline void limit(Voice& voice, const i32* sum, i32* output, i32 pre_gain_extra, i32 level_out) {
+    i32 largest = 0;
+    for (unsigned i = 0; i < opxy::block_frames; ++i) {
+        const i32 magnitude = sum[i] < 0 ? -sum[i] : sum[i];
+        if (magnitude > largest) largest = magnitude;
+    }
+    const i32 peak = largest + multiply(largest, pre_gain_extra);
+    if (peak > voice.peak) voice.peak = peak;
+    else voice.peak -= multiply(voice.peak - peak, kRelease);
+    i32 gain = kOne;
+    if (voice.peak > kUnity) gain = divide(kUnity, reciprocal(static_cast<u32>(voice.peak)), 0);
+    const i32 level = multiply(level_out, gain);
+    for (unsigned i = 0; i < opxy::block_frames; ++i)
+        output[i] = clamp(multiply(sum[i], level), -(1 << 23), 1 << 23) * 128;
+}
+
+// One block of the string models: the plucker into the main string, and for
+// the sympathetic models three more strings fed by the main string's bridge.
+inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightness, i32 damping, i32 position,
+                           u32 increment, bool dirty, i32* sum) {
+    const u32 count = model == kString ? 1 : kStrings;
+    i32 input[opxy::block_frames];
+    i32 bridge[opxy::block_frames];
+    pluck_render(voice, input);
+    if (!voice.ringing) {
+        for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = 0;
+        return;
+    }
+    i32 offsets[kStrings] = {0, 0, 0, 0};
+    if (count > 1) sympathetic_notes(structure, model, offsets);
+    for (u32 n = 0; n < count; ++n) {
+        String& s = voice.strings[n];
+        i32 bright = brightness, damp = damping, pos = position;
+        bool retune = dirty;
+        if (n == 0) {
+            s.increment = s.target = increment;
+        } else {
+            // Sympathetic strings glide to their notes, duller and well damped,
+            // their pickup wandering with a slow LFO.
+            s.target = static_cast<u32>(exp2_scale(static_cast<i32>(increment >> 1), offsets[n])) << 1;
+            bright = bend(bend(brightness));
+            damp = 1503238554 + multiply(damping, 579820585);                                  // 0.7 + 0.27 d
+            const i32 off_centre = position - (kOne >> 1);
+            const i32 amount = multiply((kOne >> 1) - (off_centre < 0 ? -off_centre : off_centre), 1932735283);  // 0.9 (0.5 - |0.5 - p|)
+            static const u32 kLfoRates[kStrings] = {0, 1246614, 1090787, 716803};            // 0.4, 0.35, 0.23 Hz, a 31-bit turn per block
+            voice.lfo[n] = (voice.lfo[n] + kLfoRates[n]) & 0x7fffffffu;
+            const i32 wave = (kOne >> 1) + (cosine(voice.lfo[n]) >> 1);                        // 0..1
+            pos = position + multiply(wave, amount);
+            const i32 glide = exp2_scale(kOne, ((bright - kOne) >> 3) * 3);                     // 2^((b - 1) 3)
+            const i32 gap = static_cast<i32>(s.target - s.increment);
+            if (!s.increment) s.increment = s.target;
+            else if (gap > -64 && gap < 64) s.increment = s.target;
+            else s.increment += static_cast<u32>(multiply(gap, glide));
+            retune = true;
+        }
+        const i32 index = static_cast<i32>((n << 31) / count);                                // n / count, Q31
+        damp += multiply(index, 2040109466 - damp);                                           // towards 0.95 up the bank
+        Stretch* stretch = (n == 0 && model == kString) ? &voice.stretch : 0;
+        if (retune) tune_string(s, stretch, structure, bright, damp, pos);
+        render_string(s, stretch, voice.seed, n == 0 ? input : bridge, sum, n == 0 ? bridge : 0);
+        if (n == 0 && count > 1) {
+            const i32 feed = 107374182;                                                        // 0.2 / 4
+            for (unsigned i = 0; i < opxy::block_frames; ++i) bridge[i] = multiply(bridge[i], feed);
+        }
+    }
+    // Rung down below -120 dB with the pluck spent: nothing until the next note.
+    i32 largest = 0;
+    for (unsigned i = 0; i < opxy::block_frames; ++i) {
+        const i32 magnitude = sum[i] < 0 ? -sum[i] : sum[i];
+        if (magnitude > largest) largest = magnitude;
+    }
+    if (!voice.plucker.remaining && largest < kIdle && damping < 2040109466) voice.ringing = 0;
+}
 }  // namespace
 
 // Callbacks run serially per voice; owner is a stable nonzero voice ID.
 inline void initialize(Voice& voice, Shared&, opxy::u32 owner) {
     voice.seed = owner * 2654435761u | 1u;
     voice.structure = voice.brightness = voice.damping = voice.position = -1;  // never a control
-    voice.modes_control = voice.pitch = 0xffffffffu;
+    voice.modes_control = voice.pitch = voice.model = 0xffffffffu;
     voice.pending = 0;
     voice.peak = 0;
     voice.count = 0;
     voice.exciter.active = 0;
+    voice.ringing = voice.gliding = 0;
+    voice.plucker.remaining = 0;
+    for (u32 n = 0; n < kStrings; ++n) voice.strings[n].increment = 0;
 }
 inline void start(Voice& voice, Shared&, opxy::u32) { voice.pending = 1; }
 inline void destroy(Voice&, Shared&, opxy::u32) {}
@@ -229,14 +315,32 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
                    opxy::Parameters parameters, opxy::Pitch pitch) {
     const i32 structure = parameters[0], brightness = parameters[1];
     const i32 damping = parameters[2], position = parameters[3];
-    const u32 modes_control = static_cast<u32>(parameters[4] < 0 ? 0 : parameters[4]);
+    const u32 model = model_choice(parameters[4]);
+    const u32 modes_control = static_cast<u32>(parameters[5] < 0 ? 0 : parameters[5]);
     const u32 increment = pitch[0];
+    i32 sum[opxy::block_frames];
+    for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = 0;
+    const bool dirty = structure != voice.structure || brightness != voice.brightness || damping != voice.damping ||
+                       position != voice.position || modes_control != voice.modes_control || increment != voice.pitch ||
+                       model != voice.model;
+    if (model != kModal) {
+        if (voice.pending) {
+            pluck(voice, brightness, increment, position);
+            voice.ringing = 1;
+            voice.pending = 0;
+        }
+        render_strings(voice, model, structure, brightness, damping, position, increment, dirty, sum);
+        voice.structure = structure; voice.brightness = brightness; voice.damping = damping;
+        voice.position = position; voice.modes_control = modes_control; voice.pitch = increment; voice.model = model;
+        if (model == kString) limit(voice, sum, output, kPoint4, kOutput);
+        else limit(voice, sum, output, 0, kOutputUnity);
+        return;
+    }
     if (voice.pending) {
-        strike(voice, brightness, increment, parameters[5]);
+        strike(voice, brightness, increment, parameters[6]);
         voice.pending = 0;
     }
-    if (structure != voice.structure || brightness != voice.brightness || damping != voice.damping ||
-        position != voice.position || modes_control != voice.modes_control || increment != voice.pitch) {
+    if (dirty) {
         tune(voice, structure, brightness, damping, position, mode_count(static_cast<i32>(modes_control)), increment);
         voice.structure = structure;
         voice.brightness = brightness;
@@ -244,10 +348,9 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
         voice.position = position;
         voice.modes_control = modes_control;
         voice.pitch = increment;
+        voice.model = model;
     }
     i32 input[opxy::block_frames];
-    i32 sum[opxy::block_frames];
-    for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = 0;
     const bool excited = voice.exciter.active != 0;
     if (excited) excite(voice, input);
     else for (unsigned i = 0; i < opxy::block_frames; ++i) input[i] = 0;
@@ -299,19 +402,6 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
         mode.x = x;
         mode.y = y;
     }
-    // Rings' limiter: 1.4 in, hold the block's peak, release slowly, 0.8 out.
-    i32 largest = 0;
-    for (unsigned i = 0; i < opxy::block_frames; ++i) {
-        const i32 magnitude = sum[i] < 0 ? -sum[i] : sum[i];
-        if (magnitude > largest) largest = magnitude;
-    }
-    const i32 peak = largest + multiply(largest, kPoint4);
-    if (peak > voice.peak) voice.peak = peak;
-    else voice.peak -= multiply(voice.peak - peak, kRelease);
-    i32 gain = kOne;
-    if (voice.peak > kUnity) gain = divide(kUnity, reciprocal(static_cast<u32>(voice.peak)), 0);
-    const i32 level = multiply(kOutput, gain);
-    for (unsigned i = 0; i < opxy::block_frames; ++i)
-        output[i] = clamp(multiply(sum[i], level), -(1 << 23), 1 << 23) * 128;
+    limit(voice, sum, output, kPoint4, kOutput);
 }
 }

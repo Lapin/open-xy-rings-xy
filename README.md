@@ -1,27 +1,33 @@
 # MI Rings
 
-A modal resonator for the OP-XY after the modal mode of Mutable Instruments
-Rings, rewritten in fixed point. Each note strikes a bank of up to 24 two-pole
-resonators tuned to a partial series. Structure bends the series from compressed,
-through harmonic, to stretched and bell-like; Bright sets the strike's colour and
-how quickly the upper partials fade; Damping sets the decay; Position moves the
-strike point along the string, thinning every second partial towards the middle.
+Mutable Instruments Rings' four resonator models for the OP-XY, rewritten in
+fixed point. Model chooses them as the module's button does. Modal: each note
+strikes a bank of up to 24 two-pole resonators tuned to a partial series that
+Structure bends from compressed, through harmonic, to stretched and bell-like.
+String: a plucked Karplus-Strong loop with Rings' damping filters, dispersion
+from Structure and a curved bridge. Sympathetic: the plucked string drives three
+more strings tuned by Structure along Rings' ladder of octaves and fifths, which
+swell and ring on after it. Chords: the same, with the three strings quantized to
+one of Rings' eleven chords by Structure. In every model Bright sets the
+excitation's colour and how quickly the highs fade, Damping the decay, Position
+the strike or pluck point.
 
-The partial layout and the decay rules follow Rings' `resonator.cc` and
-`part.cc` (MIT, Emilie Gillet); the filters, the strike and the limiter are
-reimplemented in Q31 for the Blackfin, which has no floating point. The sound
-and the strings' sympathetic models are not ported.
+The partial layout, the string loop and the decay rules follow Rings'
+`resonator.cc`, `string.cc` and `part.cc` (MIT, Emilie Gillet); the filters,
+the exciters and the limiter are reimplemented in Q31 for the Blackfin, which has
+no floating point. Rings' reverb model and its Easter eggs are not ported.
 
 Two pages of four encoders; a press of any encoder switches pages.
 
 | Control | What it does |
 | --- | --- |
-| Struct | The partial series: 0 compresses it, about 25 is harmonic, higher stretches it towards a bell |
-| Bright | The strike's low-pass, from a sixteenth of the note to sixteen times it, and how fast high partials fade |
-| Damping | The decay, from a short knock to tens of seconds |
-| Position | The strike point: 0 rings every partial, 100 strikes the middle and mutes every second one |
-| Modes (page 2, with Struct) | How many partials ring, 4 to 24; fewer cost less CPU |
-| Strike (page 2, with Bright) | 0 is a single pulse, as Rings strikes; higher turns it into a noise burst of up to 256 samples at the same energy |
+| Struct | Modal: the partial series, 0 compressed, about 25 harmonic, higher a bell. String: dispersion, harmonic at 25, stiff above. Sympathetic: the three strings' notes up the ladder. Chords: which chord |
+| Bright | The exciter's low-pass, from a sixteenth of the note to sixteen times it, and how fast the highs fade |
+| Damping | The decay, from a short knock to tens of seconds; 95 and above sustains a string for ever |
+| Position | The strike or pluck point: 0 rings every partial, 100 the middle. On a string it also sets the pickup's comb and the pluck's length |
+| Model (page 2, with Struct) | modal, string, sympath, chords |
+| Modes (page 2, with Bright) | Modal only: how many partials ring, 4 to 24; fewer cost less CPU |
+| Strike (page 2, with Damping) | Modal only: 0 is a single pulse, as Rings strikes; higher turns it into a noise burst of up to 256 samples at the same energy |
 
 The screen shows both pages in the shared header. Under it, a square tile of
 concentric rings after the Rings logo, one ring per partial at 12 pixels an
@@ -42,8 +48,23 @@ and, as in Rings, not counted. The strike is Rings' pulse through a Q 1.5
 low-pass placed by Bright, injected as filter state so its gain never needs a
 large intermediate. Rings' 1.4-in, 0.8-out peak limiter follows the sum.
 
+The string models are in `strings.h`: a 2048-sample loop read with Hermite
+interpolation, Rings' damping FIR and a Q 0.5 low-pass placed by Damping and
+Bright, with the loop shortened by that low-pass's phase delay at the note so
+the string stays within a cent across the keyboard. String adds the dispersion
+all-pass, the noise and bridge wobble of the loop length, and the DC block that
+Structure fades in below a quarter. The pluck is Rings' Plucker: a noise burst
+as long as Position's fraction of a period, through a comb and a low-pass eight
+times the strike filter's cutoff. The sympathetic strings glide to their notes,
+are dulled twice by Bright, damped at 0.7 plus 0.27 of Damping and more up the
+bank, with the pickup wandering under a slow cosine, and are fed a fifth of the
+main string's bridge output shared four ways, as Rings does with the internal
+exciter. The loop is held to eight units of headroom so an infinite sustain
+cannot overflow the integer.
+
 A mode that has rung down below -120 dB is skipped until the next strike, so
-a note costs less as it fades. Against a transcription of Rings' float
+a note costs less as it fades. A string voice goes quiet the same way once its
+pluck is spent and the sum has fallen below the floor. Against a transcription of Rings' float
 `ComputeFilters` over a grid of controls and notes, the port's partials sit
 within 0.34 cents and their decay rates within 0.45 percent, with the same
 partials counted in and out of the band.
@@ -57,10 +78,11 @@ damping curves, fractional octaves).
 | File | Owns |
 | --- | --- |
 | [definition.json](definition.json) | Controls, presets, resource declarations and the display's budget |
-| [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, the strike, the mode bank and the limiter |
+| [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, the model switch, the strike, the mode bank and the limiter |
+| [strings.h](strings.h) | The string loop, the pluck and the sympathetic strings' notes |
 | [series.h](series.h), [tables.h](tables.h), [tools/gen_tables.py](tools/gen_tables.py) | The partial series and the generated tables |
 | [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | The header and the ring tile |
-| [tests/sound.cpp](tests/sound.cpp) | Sound checks: strike level and decay, tuning, each control's direction, every corner bounded, silence |
+| [tests/sound.cpp](tests/sound.cpp) | Sound checks: strike and pluck level and decay, modal and string tuning, each control's direction, every corner of every model bounded, a ten-second sympathetic sustain, silence |
 | [machine.json](machine.json) | Kind, identity, description and builder glyph |
 
 ## Develop
@@ -79,8 +101,11 @@ has no multiplies, so every Q31 multiply counts as the dozen host instructions
 the portable helper takes rather than the Blackfin's one. The hand count is
 about 10 instructions per mode per sample for a long-decay mode and 14 for a
 short one, so 16 modes sit near 10,000 to 14,000 Blackfin instructions per
-voice block and 24 near 15,000 to 21,000, before the hardware measurement that
-the catalog requires. Turn Modes down on busy projects until it is measured.
+voice block and 24 near 15,000 to 21,000. A string is about 30 per sample, so
+the single string sits near 2,500 and the four of the sympathetic models near
+8,000, before the hardware measurement that the catalog requires. The voice
+holds four 2048-sample loops, so the machine declares eight voices. Turn Modes
+down on busy projects until it is measured.
 
 ## Hardware and publication
 

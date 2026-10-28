@@ -49,9 +49,25 @@
       "display": "percent"
     },
     {
+      "id": "model",
+      "label": "Model",
+      "control": 0,
+      "default": 0.125,
+      "mapping": {
+        "kind": "enum",
+        "labels": [
+          "modal",
+          "string",
+          "sympath",
+          "chords"
+        ]
+      },
+      "display": "enum"
+    },
+    {
       "id": "modes",
       "label": "Modes",
-      "control": 0,
+      "control": 1,
       "default": 0.5952380952380952,
       "mapping": {
         "kind": "enum",
@@ -84,7 +100,7 @@
     {
       "id": "strike",
       "label": "Strike",
-      "control": 1,
+      "control": 2,
       "default": 0,
       "mapping": {
         "kind": "linear",
@@ -100,6 +116,7 @@
       "bright": 0.5,
       "damping": 0.6,
       "position": 0,
+      "model": 0.125,
       "modes": 0.5952380952380952,
       "strike": 0
     },
@@ -108,22 +125,51 @@
       "bright": 0.6,
       "damping": 0.75,
       "position": 0.2,
+      "model": 0.125,
       "modes": 0.7857142857142857,
       "strike": 0
     },
     "Brushed": {
-      "structure": 0.3,
+      "structure": 0.25,
       "bright": 0.4,
       "damping": 0.5,
-      "position": 0.5,
+      "position": 0.1,
+      "model": 0.125,
       "modes": 0.5952380952380952,
-      "strike": 0.75
+      "strike": 0.7
+    },
+    "Pluck": {
+      "structure": 0.3,
+      "bright": 0.6,
+      "damping": 0.5,
+      "position": 0.3,
+      "model": 0.375,
+      "modes": 0.5952380952380952,
+      "strike": 0
+    },
+    "Sympathy": {
+      "structure": 0.45,
+      "bright": 0.55,
+      "damping": 0.7,
+      "position": 0.25,
+      "model": 0.625,
+      "modes": 0.5952380952380952,
+      "strike": 0
+    },
+    "Chord": {
+      "structure": 0.5,
+      "bright": 0.5,
+      "damping": 0.75,
+      "position": 0.3,
+      "model": 0.875,
+      "modes": 0.5952380952380952,
+      "strike": 0
     }
   },
   "resources": {
-    "voiceBytes": 1032,
+    "voiceBytes": 39376,
     "voiceAlignment": 4,
-    "voiceCapacity": 16,
+    "voiceCapacity": 8,
     "sharedBytes": 0,
     "outputPeakQ31": 1073741824,
     "display": {

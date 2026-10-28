@@ -25,10 +25,11 @@ struct Note {
     opxy::i32 output[N];
     double peak;  // the largest |sample| ever rendered, Q31 scale
 
-    Note(double hz, double structure, double bright, double damping, double position, double modes, double strike) : peak(0) {
+    Note(double hz, double structure, double bright, double damping, double position, double modes, double strike,
+         double model = 0.125) : peak(0) {
         parameters[0] = control(structure); parameters[1] = control(bright); parameters[2] = control(damping);
-        parameters[3] = control(position); parameters[4] = control(modes); parameters[5] = control(strike);
-        parameters[6] = parameters[7] = 0;
+        parameters[3] = control(position); parameters[4] = control(model); parameters[5] = control(modes);
+        parameters[6] = control(strike); parameters[7] = 0;
         for (unsigned i = 0; i < N; ++i) pitch[i] = increment(hz);
         unsigned char* bytes = reinterpret_cast<unsigned char*>(&voice);
         for (unsigned i = 0; i < sizeof voice; ++i) bytes[i] = 0;
@@ -106,8 +107,8 @@ int main() {
         for (unsigned corner = 0; corner < 64; ++corner) {
             const double st = (corner & 1) ? 1 : 0, br = (corner & 2) ? 1 : 0, da = (corner & 4) ? 1 : 0;
             const double po = (corner & 8) ? 1 : 0, mo = (corner & 16) ? 1 : 0, strike = (corner & 32) ? 1 : 0;
-            for (unsigned p = 0; p < 2; ++p) {
-                Note note(hz[p], st, br, da, po, mo, strike);
+            for (unsigned p = 0; p < 2; ++p) for (unsigned model = 0; model < 4; ++model) {
+                Note note(hz[p], st, br, da, po, mo, strike, 0.125 + 0.25 * model);
                 note.render(40);
                 mi_rings::start(note.voice, note.shared, 1);  // a restrike on a ringing voice
                 note.render(40);
@@ -115,6 +116,42 @@ int main() {
                 note.render(40);
             }
         }
+    }
+    {   // The string models: a pluck that rings, a tuned string, and sympathetic strings that answer.
+        static const char* const names[3] = {"string", "sympathetic", "chords"};
+        for (unsigned model = 1; model < 4; ++model) {
+            Note note(220, 0.3, 0.6, 0.6, 0.3, modes16, 0, 0.125 + 0.25 * model);
+            double early = note.render(8);
+            double swell = note.render(60);   // sympathetic strings gather energy for a second or so
+            double mid = note.render(600);
+            double late = note.render(1500);
+            std::printf("%s: early %.4f swell %.4f mid %.4f late %.4f peak %.3f\n", names[model - 1], early, swell, mid, late, note.peak);
+            check(early > 0.005, "pluck too quiet");
+            check(late < mid && (model != 1 || late < early), "string does not decay");
+        }
+        {   // Infinite sustain with sympathetic strings gathering energy for ten seconds stays bounded.
+            Note note(110, 0.45, 0.7, 1, 0.3, modes16, 0, 0.625);
+            note.render(6890);
+            check(note.peak <= 0.5, "sympathetic sustain unbounded");
+        }
+        // The plain string's pitch: the autocorrelation peak of a long ring sits at the period of 220 Hz.
+        Note note(220, 0.25, 0.6, 0.8, 0.3, modes16, 0, 0.375);  // Struct 0.25: no dispersion to bend the pitch
+        note.render(4);
+        static double samples[N * 64];
+        note.render(64, samples);
+        double best = 0; int best_lag = 0;
+        for (int lag = 120; lag < 280; ++lag) {
+            double sum = 0;
+            for (unsigned i = 0; i + lag < N * 64; ++i) sum += samples[i] * samples[i + lag];
+            if (sum > best) { best = sum; best_lag = lag; }
+        }
+        std::printf("string period %d samples (expected %.1f)\n", best_lag, 44100.0 / 220);
+        check(best_lag >= 200 && best_lag <= 201, "string out of tune");
+        // Damping lengthens the string's ring.
+        Note dry(220, 0.3, 0.6, 0.2, 0.3, modes16, 0, 0.375), wet(220, 0.3, 0.6, 0.9, 0.3, modes16, 0, 0.375);
+        dry.render(4); wet.render(4);
+        dry.render(30); wet.render(30);
+        check(wet.render(10) > dry.render(10), "string Damping direction");
     }
     {   // Short decay falls silent instead of freezing at a floor.
         Note note(440, 0.25, 0.5, 0, 0, modes16, 0);
