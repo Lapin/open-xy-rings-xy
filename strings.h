@@ -143,12 +143,15 @@ inline void tune_string(String& s, Stretch* stretch, i32 structure, i32 brightne
     const i32 off_centre = position - (kOne >> 1);
     const i32 pickup = (kOne >> 1) - multiply(off_centre < 0 ? -off_centre : off_centre, 2104533974);  // 0.5 - 0.98 |p - 0.5|
     s.comb = pickup;
+    // Rings' mono outputs carry the loop without the pickup comb; at the bridge
+    // the comb would cancel the string to silence, so it fades in with Position.
+    s.pickup_mix = position >= (kOne >> 2) ? kOne : position * 4;
 }
 
 // --- Rendering -------------------------------------------------------------
 // One block of a string: input in, out += s - pickup, as Rings dispatches voices.
 inline void render_string(String& s, Stretch* stretch, u32& seed, const i32* input, i32* out, i32* bridge_out) {
-    const i32 c0 = s.c0, c1 = s.c1, g = s.g, h = s.h, comb = s.comb;
+    const i32 c0 = s.c0, c1 = s.c1, g = s.g, h = s.h, comb = s.comb, mix = s.pickup_mix;
     i32 x1 = s.x1, x2 = s.x2, s1 = s.s1, s2 = s.s2, dc_x = s.dc_x, dc_y = s.dc_y;
     i32 dnoise = s.noise, bridge = s.bridge;
     for (unsigned i = 0; i < opxy::block_frames; ++i) {
@@ -197,7 +200,7 @@ inline void render_string(String& s, Stretch* stretch, u32& seed, const i32* inp
         lp = clamp(lp, -(1 << 27), 1 << 27);
         line_write(s.line, lp);
         const i32 pickup = line_read(s.line, multiply(delay, comb));
-        const i32 o = lp - pickup;
+        const i32 o = lp - multiply(mix, pickup);
         out[i] += o;
         if (bridge_out) bridge_out[i] = o;
     }
@@ -215,6 +218,9 @@ inline void pluck(Voice& voice, i32 brightness, u32 increment, i32 position) {
     while (period >= 255 << 16) period >>= 1;
     p.period = period;
     p.gain = multiply(kOne - position, 1717986918);                      // 0.8 (1 - p)
+    // A short burst carries little energy: lift it towards the half-period
+    // burst's loudness, up to 2.8 times, so a pluck at the bridge still speaks.
+    p.burst = ratio >= (kOne >> 1) ? 1 << 28 : (1 << 28) + (((kOne >> 1) - ratio) >> 1);  // Q28
     // Its low-pass: eight times the strike filter's cutoff, at Q 1.
     const i32 colour = bend(brightness);
     i32 cutoff = shift(exp2_scale(static_cast<i32>(increment >> 1), colour - (1 << 30)), 3);
@@ -230,7 +236,7 @@ inline void pluck_render(Voice& voice, i32* out) {
         i32 sample = 0;
         if (p.remaining) {
             --p.remaining;
-            sample = noise(voice.seed) >> 7;
+            sample = multiply(noise(voice.seed), p.burst) >> 4;             // Q24 units
         }
         const u32 whole = static_cast<u32>(period >> 16);
         const i32 fraction = static_cast<i32>(period & 0xffff) << 15;
