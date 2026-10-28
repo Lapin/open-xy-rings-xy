@@ -118,16 +118,15 @@ void tune(Voice& voice, i32 structure, i32 brightness, i32 damping, i32 position
     q_loss += multiply(ease, kOne - q_loss);                       // lush keeps its top partials ringing
     const i32 q_loss_rate = multiply(bend(structure), kTenth);
     i32 harmonic = 0;  // Q28
-    // A partial that joins a ringing note takes the top ringing partial's
-    // state, rolled off by 1/n^2 as the strike's two-pole low-pass would have
-    // left it, so a turn up of Modes is heard before the next strike; Rings
-    // leaves a new mode silent until it is struck.
+    // A partial that joins a ringing note starts from the fundamental's state,
+    // rolled off by 1/n^2 as the strike's two-pole low-pass would have left
+    // it, so a turn up of Modes is heard before the next strike. Rings leaves
+    // a new mode silent until it is struck, and the top ringing partial is
+    // no reference: at Bright 50 it has died within the first tenth of a second.
     i32 seed_x = 0, seed_y = 0;
-    u32 top = 0;
-    if (voice.count > 0 && voice.modes[voice.count - 1].active) {
-        top = voice.count - 1;
-        seed_x = voice.modes[top].x;
-        seed_y = voice.modes[top].y;
+    if (voice.count > 0 && voice.modes[0].active) {
+        seed_x = voice.modes[0].x;
+        seed_y = voice.modes[0].y;
     }
     voice.count = 0;
     for (u32 i = 0; i < kMaxModes; ++i) {
@@ -159,8 +158,7 @@ void tune(Voice& voice, i32 structure, i32 brightness, i32 damping, i32 position
             mode.amplitude = series.amplitude[i];
             if (!mode.active) {
                 mode.carry_x = mode.carry_y = 0;
-                i32 scale = kOne;  // ((top + 1) / (i + 1))^2, Q31
-                if (i > top) scale = divide(static_cast<i32>((top + 1) * (top + 1)) << 20, reciprocal((i + 1) * (i + 1)), -20);
+                const i32 scale = i ? divide(1 << 20, reciprocal((i + 1) * (i + 1)), -20) : kOne;  // 1 / (i + 1)^2, Q31
                 mode.x = multiply(seed_x, scale);
                 mode.y = multiply(seed_y, scale);
             }
