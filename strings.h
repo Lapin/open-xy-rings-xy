@@ -97,8 +97,11 @@ inline void tune_string(String& s, Stretch* stretch, i32 structure, i32 brightne
         const i32 ratio = divide(dispersion, reciprocal(den), 0);
         s.ap_gain = -multiply(ratio, 1327144185);
     }
-    // Damping: the loop's gain per pass from an RT60 that Damping sets.
-    const i32 lf = bend(damping);                                                            // d (2 - d)
+    // Damping: the loop's gain per pass from an RT60 that Damping sets, with a
+    // floor of 0.3 so the string always rings for about a second and the
+    // OP-XY's own envelope is what cuts a note short, as Karplus leaves it.
+    const i32 floored = 644245094 + multiply(damping, 1503238554);                           // 0.3 + 0.7 d
+    const i32 lf = bend(floored);                                                            // d (2 - d)
     // The loop's gain per pass: 2^(-(delay / 308.7) 2^(-8 lf)), from an RT60 of
     // 0.07 s x 2^(8 lf). delay x 13.268 is that exponent in Q28 octaves.
     const i32 base = delay * 13 + (delay >> 13) * 2195;
