@@ -334,7 +334,7 @@ for i in range(PATHS):
 for i, colour in enumerate(BARS):
     out.append(f'<path id="{ID}_node_{HEADER + i}" transform="matrix(1 0 0 1 {i * 60} 0)" d="M0,0 L60,0 L60,20 L0,20 Z" '
                f'fill="{colour}" stroke="{colour}" stroke-width="0.5"/>')
-titles = ['struct', 'bright', 'damping', 'position', 'model', 'strike', 'position', 'modes']
+titles = ['struct', 'bright', 'damping', 'position', 'model', 'strike', 'damping', 'modes']
 values = ['50', '50', '50', '50', 'mdal', '0', '50', 'lean']
 for i in range(4):
     dark = '#000000' if i >= 2 else '#CBCBCB'
