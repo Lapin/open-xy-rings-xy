@@ -14,11 +14,10 @@ import os
 
 ID = 'mi_rings'
 CX, CY = 240, 130                      # the body's centre
-BODY = 42                              # the body circle's radius
-INNER = [12, 22, 32]                   # the inner rings
-STRING_HALF = 38                       # half a string's authored length
+BODY = 40                              # the body circle's radius
+INNER = [11, 21, 31]                   # the inner rings
+STRING_HALF = 36                       # half a string's authored length
 PAISLEYS = 12
-REACH = 87                             # the mandala's outermost pixel from the centre
 LED_X = (30, 450)                      # model LEDs left, modes LEDs right
 LED_Y = (82, 114, 146, 178)
 LED_R = 8
@@ -48,15 +47,38 @@ FIRST_MODES_LED = 111                  # 111..114
 HALO = 115                             # 115 model, 116 modes
 NODES = HALO + 2
 
-# The motif lifted from the Rings panel (tools/extract_motif.py), scaled so the
-# outermost dot reaches REACH pixels from the centre.
+# The motif lifted from the Rings panel (tools/extract_motif.py). The paisley is
+# flipped so its tip points outwards, scaled, and slid out to span PAISLEY_R;
+# its eye and pupil become circles. The wavy rings are redrawn with twelve
+# waves so every paisley tip sits in a notch, and the circled dots ride beyond.
 MOTIF = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'motif.json')))
-MOTIF_REACH = max(math.hypot(x, y) for x, y in MOTIF['dot_ring'])
-SCALE = REACH / MOTIF_REACH
+PAISLEY_R = (44, 68)                   # the paisley's radial span, px
+RING_R, RING_WAVE, RING_GAP = 73.5, 3.5, 4   # the wavy rings: mean radius, wave height, spacing
+DOT_R, DOT_RING = 85, 3.2              # the circled dots' radius from the centre and their ring's radius
+WAVES, WAVE_POINTS = 12, 144
+
+_outline_y = [y for _, y in MOTIF['paisley']['outline']]
+_flip = min(_outline_y) + max(_outline_y)                       # y -> _flip - y mirrors the paisley radially
+_scale = (PAISLEY_R[1] - PAISLEY_R[0]) / (max(_outline_y) - min(_outline_y))
+_slide = PAISLEY_R[0] + max(_outline_y) * _scale                # outwards, so the base lands at PAISLEY_R[0]
 
 
-def scaled(points):
-    return [(x * SCALE, y * SCALE) for x, y in points]
+def paisley(points):
+    """A paisley piece in screen pixels, tip outwards (up), base at PAISLEY_R[0]."""
+    return [(x * _scale, (_flip - y) * _scale - _slide) for x, y in points]
+
+
+def paisley_circle(points):
+    """A small ring of the motif as a circle: centre and radius in screen pixels."""
+    local = paisley(points)
+    cx = sum(x for x, _ in local) / len(local)
+    cy = sum(y for _, y in local) / len(local)
+    return cx, cy, sum(math.hypot(x - cx, y - cy) for x, y in local) / len(local)
+
+
+def wavy_ring(radius):
+    return [((radius + RING_WAVE * math.cos(WAVES * t)) * math.sin(t), -(radius + RING_WAVE * math.cos(WAVES * t)) * math.cos(t))
+            for t in (2 * math.pi * i / WAVE_POINTS for i in range(WAVE_POINTS))]
 
 
 def num(v):
@@ -148,18 +170,25 @@ for i in range(RIPPLES):
     out.append(circle_node(FIRST_RIPPLE + i, 40))
 for i in range(STRINGS):
     out.append(node(FIRST_STRING + i, [(-STRING_HALF, -0.4), (STRING_HALF, -0.4), (STRING_HALF, 0.4), (-STRING_HALF, 0.4)], width=0.5))
-out.append('<!-- The mandala, lifted from the Rings panel: twelve paisleys, two wavy rings and')
-out.append('     twelve circled dots, every piece authored upright at the centre and turned by the display. -->')
+out.append('<!-- The mandala, lifted from the Rings panel: twelve paisleys, tips outwards, two wavy rings')
+out.append('     with a notch for every tip, and twelve circled dots beyond; every piece authored upright at')
+out.append('     the centre and turned by the display. -->')
 P = MOTIF['paisley']
-for first, key in ((FIRST_OUTLINE, 'outline'), (FIRST_INNER_DROP, 'inner'), (FIRST_EYE, 'eye'), (FIRST_PUPIL, 'pupil'), (FIRST_DROP, 'drop')):
+for first, key in ((FIRST_OUTLINE, 'outline'), (FIRST_INNER_DROP, 'inner'), (FIRST_DROP, 'drop')):
     for i in range(PAISLEYS):
-        out.append(node(first + i, scaled(P[key]), width=0.8))
-out.append(node(RING_INNER, scaled(MOTIF['ring_inner']), width=0.8))
-out.append(node(RING_OUTER, scaled(MOTIF['ring_outer']), width=0.8))
+        out.append(node(first + i, paisley(P[key]), width=0.8))
+ex, ey, er = paisley_circle(P['eye'])
+px, py, pr = paisley_circle(P['pupil'])
 for i in range(PAISLEYS):
-    out.append(node(FIRST_DOT_RING + i, scaled(MOTIF['dot_ring']), width=0.8))
+    out.append(f'<circle id="{ID}_node_{FIRST_EYE + i}" {PARKED} cx="{num(ex)}" cy="{num(ey)}" r="{num(er)}" fill="none" stroke="#808080" stroke-width="0.8"/>')
 for i in range(PAISLEYS):
-    out.append(node(FIRST_DOT + i, scaled(MOTIF['dot']), width=0.8))
+    out.append(f'<circle id="{ID}_node_{FIRST_PUPIL + i}" {PARKED} cx="{num(px)}" cy="{num(py)}" r="{num(pr)}" fill="#808080" stroke="#808080" stroke-width="0.5"/>')
+out.append(node(RING_INNER, wavy_ring(RING_R), width=0.8))
+out.append(node(RING_OUTER, wavy_ring(RING_R + RING_GAP), width=0.8))
+for i in range(PAISLEYS):
+    out.append(f'<circle id="{ID}_node_{FIRST_DOT_RING + i}" {PARKED} cx="0" cy="{num(-DOT_R)}" r="{num(DOT_RING)}" fill="none" stroke="#808080" stroke-width="0.8"/>')
+for i in range(PAISLEYS):
+    out.append(f'<circle id="{ID}_node_{FIRST_DOT + i}" {PARKED} cx="0" cy="{num(-DOT_R)}" r="1.2" fill="#808080" stroke="#808080" stroke-width="0.5"/>')
 out.append('<!-- The LEDs and the halo that marks a change. -->')
 for i in range(4):
     out.append(circle_node(FIRST_MODEL_LED + i, LED_R, stroke='#808080', width=1.2))

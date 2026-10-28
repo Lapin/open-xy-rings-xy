@@ -14,7 +14,7 @@ using opxy::i32;
 using opxy::u32;
 using namespace opxy::draw;
 const i32 kCentreX = 240 * unit, kCentreY = 130 * unit;
-const i32 kBodyRadius = 42 * unit;
+const i32 kBodyRadius = 40 * unit;
 const i32 kAuthoredRipple = 40;                                 // the ripple circles' r
 const i32 kExpired = 4 * unit;                                  // the longest kick, seconds
 const i32 kHaloLife = unit;                                     // a change's halo, one second
@@ -46,9 +46,9 @@ inline u32 choice4(i32 control) {
 
 // Places a petal at the body's centre, turned by tenths of a degree, or hides it.
 template <class F>
-inline void petal(F& frame, u32 node, i32 tenths, i32 shade) {
+inline void petal(F& frame, u32 node, i32 tenths, i32 shade, Paint paint = stroke) {
     if (shade <= 0) { hide(frame, node); return; }
-    place(frame, node, kCentreX, kCentreY, unit, static_cast<u32>(shade > 15 ? 15 : shade), stroke);
+    place(frame, node, kCentreX, kCentreY, unit, static_cast<u32>(shade > 15 ? 15 : shade), paint);
     turn(frame, node, rotation(tenths));
 }
 }
@@ -137,7 +137,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
 
     // The pluck point: Position runs along the body's diameter from the left
     // edge (0) to the right (1), through the centre at 0.5. Strike fattens it on the modal body.
-    const i32 strike_x = kCentreX - kBodyRadius + ((position >> 16) * 84 >> 5);
+    const i32 strike_x = kCentreX - kBodyRadius + ((position >> 16) * 80 >> 5);
     const i32 strike_scale = unit + (model == 0 ? (strike >> 21) * 2 : 0) + flash;
     place(frame, kStrikeNode, strike_x, kCentreY, clamp(strike_scale, unit / 2, 2 * unit),
           static_cast<u32>(8 + (flash * 7 >> 10)), fill_and_stroke);
@@ -147,7 +147,7 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         const u32 node = kFirstRipple + i;
         const i32 progress = state.ripple_age[i] * rate >> 10;  // Q10, 1 at the end of life
         if (input.reduced_motion || progress <= 0 || progress >= unit) { hide(frame, node); continue; }
-        const i32 radius = 4 * unit + (progress * 38);           // 4..42 px, to the body's edge
+        const i32 radius = 4 * unit + (progress * 36);           // 4..40 px, to the body's edge
         const i32 shade = clamp(((unit - progress) * (4 + bright)) >> 10, 0, 15);
         if (!shade) { hide(frame, node); continue; }
         place(frame, node, strike_x, kCentreY, clamp(radius / kAuthoredRipple, unit / 8, 2 * unit), static_cast<u32>(shade), stroke);
@@ -169,16 +169,16 @@ inline void display(DisplayState& state, const opxy::draw::Input& input, Frame& 
         petal(frame, kFirstInnerDrop + i, tenths, (level - 1) * inner_fade >> 10);
         const i32 eye = (level - 2) * eye_fade >> 10;
         petal(frame, kFirstEye + i, tenths, eye);
-        petal(frame, kFirstPupil + i, tenths, eye);
+        petal(frame, kFirstPupil + i, tenths, eye, fill_and_stroke);
         petal(frame, kFirstDrop + i, tenths, eye);
     }
     petal(frame, kRingInner, state.angle, (level - 2) * ring_fade >> 10);
     petal(frame, kRingOuter, state.angle, (level - 3) * ring_fade >> 10);
-    const i32 counter = 3600 - (state.angle * 3 >> 2) + 150;
+    const i32 counter = 3600 - (state.angle * 3 >> 2);
     for (u32 i = 0; i < kPaisleys; ++i) {
         const i32 tenths = counter + static_cast<i32>(i) * 300;
         petal(frame, kFirstDotRing + i, tenths, (level - 2) * dot_fade >> 10);
-        petal(frame, kFirstDot + i, tenths, (level - 2) * dot_fade >> 10);
+        petal(frame, kFirstDot + i, tenths, (level - 2) * dot_fade >> 10, fill_and_stroke);
     }
 
     // The LEDs: the chosen one lit, a halo on it while the change is fresh.

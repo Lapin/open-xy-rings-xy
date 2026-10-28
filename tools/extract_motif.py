@@ -14,7 +14,7 @@ svg = open(sys.argv[1]).read()
 paths = [m.group(2) for m in re.finditer(r'<path([^>]*) d="([^"]*)"', svg)]
 
 
-def piece(index, sub, turn=0.0, tolerance=0.12):
+def piece(index, sub, turn=0.0, tolerance=0.05):
     pts = pp.subpaths(paths[index])[sub][1]
     local = [(x - pp.CENTRE[0], y - pp.CENTRE[1]) for x, y in pts]
     local = pp.simplify(local, tolerance)
@@ -30,11 +30,11 @@ motif = {
     'units': 'panel points about the knob centre; y down; the paisley points up',
     'paisley': {
         'outline': piece(60, 11, TURN),
-        'inner': piece(60, 10, TURN),
+        'inner': piece(60, 10, TURN, 0.03),
         'eye': piece(94, 1, TURN),
         'pupil': piece(114, 0, TURN),
-        'drop': piece(95, 1, TURN),
-        'beads': [piece(60, k, TURN) for k in range(10)],
+        'drop': piece(95, 1, TURN, 0.03),
+        'beads': [piece(60, k, TURN, 0.03) for k in range(10)],
     },
     'ring_inner': piece(25, 0, 0, 0.08),
     'ring_outer': piece(6, 0, 0, 0.08),
