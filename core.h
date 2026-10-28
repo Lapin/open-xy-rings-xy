@@ -60,6 +60,7 @@ struct String {
     opxy::i32 comb;              // Position's pickup, as a fraction of the loop, Q31
     opxy::i32 pickup_mix;        // how much the pickup subtracts, Q31: faded in over the first quarter of Position
     opxy::i32 ap_gain, stretch_point, noise_amount, bridge_curving, ac_blocking, noise_filter, noise_gain;
+    opxy::u32 active;            // rendered last block; a string coming back starts from silence
     Line line;
 };
 

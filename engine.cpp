@@ -252,9 +252,10 @@ inline void limit(Voice& voice, const i32* sum, i32* output, i32 pre_gain_extra,
 // One block of the string models: the plucker into the main string, and for
 // the sympathetic models three more strings fed by the main string's bridge.
 inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightness, i32 damping, i32 position,
-                           u32 increment, bool dirty, i32* sum) {
+                           u32 increment, u32 strings, bool dirty, i32* sum) {
     const i32 stiffness = harmonic_centre(structure);  // the main string's dispersion; the notes keep the raw knob
-    const u32 count = model == kString ? 1 : kStrings;
+    const u32 count = model == kString ? 1 : strings;
+    for (u32 n = count; n < kStrings; ++n) voice.strings[n].active = 0;
     i32 input[opxy::block_frames];
     i32 bridge[opxy::block_frames];
     pluck_render(voice, input);
@@ -266,6 +267,14 @@ inline void render_strings(Voice& voice, u32 model, i32 structure, i32 brightnes
     if (count > 1) sympathetic_notes(structure, model, offsets);
     for (u32 n = 0; n < count; ++n) {
         String& s = voice.strings[n];
+        if (!s.active) {
+            // Back in the bank: silent, in tune at once, and tuned below.
+            for (unsigned i = 0; i < kLineLength; ++i) s.line.samples[i] = 0;
+            s.x1 = s.x2 = s.s1 = s.s2 = s.dc_x = s.dc_y = s.noise = s.bridge = 0;
+            s.increment = 0;
+            s.active = 1;
+            dirty = true;
+        }
         i32 bright = brightness, damp = damping, pos = position;
         bool retune = dirty;
         if (n == 0) {
@@ -326,7 +335,7 @@ inline void initialize(Voice& voice, Shared&, opxy::u32 owner) {
     voice.exciter.active = 0;
     voice.ringing = voice.gliding = 0;
     voice.plucker.remaining = 0;
-    for (u32 n = 0; n < kStrings; ++n) voice.strings[n].increment = 0;
+    for (u32 n = 0; n < kStrings; ++n) voice.strings[n].increment = voice.strings[n].active = 0;
 }
 inline void start(Voice& voice, Shared&, opxy::u32) { voice.pending = 1; }
 inline void destroy(Voice&, Shared&, opxy::u32) {}
@@ -349,13 +358,19 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
             voice.ringing = 1;
             voice.pending = 0;
         }
-        render_strings(voice, model, structure, brightness, damping, position, increment, dirty, sum);
+        render_strings(voice, model, structure, brightness, damping, position, increment, string_count(static_cast<i32>(modes_control)), dirty, sum);
         voice.structure = structure; voice.brightness = brightness; voice.damping = damping;
         voice.position = position; voice.modes_control = modes_control; voice.pitch = increment; voice.model = model;
         // Level trims so the strings strike about as loud as the modal body
-        // (measured at the defaults): string 1.6, sympathetic 1.2, chords 2.
-        static const i32 kTrimHalf[kModels] = {0, 1717986918, 1288490189, 2147483647};
-        for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = multiply(sum[i], kTrimHalf[model]) * 2;
+        // (measured at the defaults): string 1.6, chords 2, sympathetic 1.8
+        // until its fourth string, the unison twin, which rings loud: 1.2.
+        static const i32 kTrimHalf[kModels][kStrings] = {
+            {0, 0, 0, 0},
+            {1717986918, 1717986918, 1717986918, 1717986918},
+            {1932735283, 1932735283, 1932735283, 1288490189},
+            {2147483647, 2147483647, 2147483647, 2147483647}};
+        const u32 strings = model == kString ? 1 : string_count(static_cast<i32>(modes_control));
+        for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = multiply(sum[i], kTrimHalf[model][strings - 1]) * 2;
         if (model == kString) limit(voice, sum, output, kPoint4, kOutput);
         else limit(voice, sum, output, 0, kOutputUnity);
         return;
