@@ -316,7 +316,7 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
     const i32 structure = parameters[0], brightness = parameters[1];
     const i32 damping = parameters[2], position = parameters[3];
     const u32 model = model_choice(parameters[4]);
-    const u32 modes_control = static_cast<u32>(parameters[5] < 0 ? 0 : parameters[5]);
+    const u32 modes_control = static_cast<u32>(parameters[6] < 0 ? 0 : parameters[6]);
     const u32 increment = pitch[0];
     i32 sum[opxy::block_frames];
     for (unsigned i = 0; i < opxy::block_frames; ++i) sum[i] = 0;
@@ -337,7 +337,7 @@ inline void render(Voice& voice, Shared&, opxy::u32, opxy::Output output,
         return;
     }
     if (voice.pending) {
-        strike(voice, brightness, increment, parameters[6]);
+        strike(voice, brightness, increment, parameters[5]);
         voice.pending = 0;
     }
     if (dirty) {

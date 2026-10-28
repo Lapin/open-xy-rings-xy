@@ -9,8 +9,8 @@
 
 namespace mi_rings {
 const unsigned kMaxModes = 24;
-const unsigned kMinModes = 4;
-const unsigned kModeChoices = kMaxModes - kMinModes + 1;  // the Modes enum: 4..24
+const unsigned kModeStep = 6;
+const unsigned kModeChoices = kMaxModes / kModeStep;  // the Modes enum: 6, 12, 18, 24
 
 // Interpolated read of a 257-entry table over a normalized Q31 control.
 inline opxy::i32 lookup(const opxy::i32* table, opxy::i32 control) {
@@ -41,7 +41,7 @@ inline opxy::u32 mode_count(opxy::i32 control) {
     const opxy::u32 c = control < 0 ? 0u : static_cast<opxy::u32>(control);
     opxy::u32 choice = (c >> 16) * kModeChoices >> 15;
     if (choice >= kModeChoices) choice = kModeChoices - 1;
-    return kMinModes + choice;
+    return kModeStep * (choice + 1);
 }
 
 struct Series {

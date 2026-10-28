@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Generates panel.svg.fragment: the two-page header block, the paisley filigree
-either side, the ring tile, and the nodes the display animates.
+"""Generates panel.svg.fragment: the two-page header block, the Rings-style
+model and modes LEDs with their icons either side, and the nodes the display
+animates: the body circle with its inner rings and strings, the pluck point
+and ripples, and three rings of mandala petals that turn around the body.
 
 Only forms seen on hardware: rect, circle, path of M/L/Z, text; at most two
 decimals; explicit paint on every leaf; bound nodes parked off screen.
@@ -8,14 +10,33 @@ decimals; explicit paint on every leaf; bound nodes parked off screen.
 import math
 
 ID = 'mi_rings'
-CX, CY = 240, 130       # the tile's centre
-HALF = 86               # the tile's half side
-FIRST_RING, RINGS = 8, 12
-STRIKE = FIRST_RING + RINGS
-FIRST_RIPPLE, RIPPLES = STRIKE + 1, 3
+CX, CY = 240, 130                      # the body's centre
+BODY = 54                              # the body circle's radius
+INNER = [14, 27, 40]                   # the inner rings
+PETALS_A, PETALS_B, PETALS_C = 12, 16, 24
+LED_X = (30, 450)                      # model LEDs left, modes LEDs right
+LED_Y = (82, 114, 146, 178)
+LED_R = 8
 PALETTE = 16
 BARS = ['#000000', '#323232', '#4B4B4B', '#646464', '#7D7D7D', '#969696', '#AFAFAF', '#CDCDCD']
 FONT = 'font-family="UniversNextPro-Light"'
+ICON = '#8A8A8A'
+PARKED = 'transform="matrix(1 0 0 1 640 320)"'
+
+# Node map, shared with display.h.
+BODY_NODE = 8
+FIRST_INNER = 9                        # 9..11
+CENTRE = 12
+STRIKE = 13
+FIRST_RIPPLE, RIPPLES = 14, 3          # 14..16
+FIRST_STRING, STRINGS = 17, 4          # 17..20
+FIRST_A = 21                           # 21..32
+FIRST_B = FIRST_A + PETALS_A           # 33..48
+FIRST_C = FIRST_B + PETALS_B           # 49..72
+FIRST_MODEL_LED = FIRST_C + PETALS_C   # 73..76
+FIRST_MODES_LED = FIRST_MODEL_LED + 4  # 77..80
+HALO = FIRST_MODES_LED + 4             # 81 model, 82 modes
+NODES = HALO + 2
 
 
 def num(v):
@@ -23,54 +44,63 @@ def num(v):
     return '0' if s in ('-0', '') else s
 
 
-def poly(points, stroke, width=1, fill='none', close=True, attrs=''):
-    d = 'M' + ' L'.join(f'{num(x)},{num(y)}' for x, y in points) + (' Z' if close else '')
-    return f'<path d="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{width}"{attrs}/>'
+def poly(points, stroke, width=1, fill='none', attrs=''):
+    d = 'M' + ' L'.join(f'{num(x)},{num(y)}' for x, y in points) + ' Z'
+    return f'<path{attrs} d="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{width}"/>'
 
 
-def paisley(length, width, bend, steps):
-    """A paisley outline: a slender teardrop bent along an arc, one closed
-    polyline in local coordinates. It starts at the origin heading +x and curls
-    towards +y; the tip is at the far end. Every point is distinct."""
-    radius = length / math.radians(bend)
-    def centre(u):
-        phi = u * math.radians(bend)
-        return (radius * math.sin(phi), radius * (1 - math.cos(phi))), (-math.sin(phi), math.cos(phi))
-    def half_width(u):
-        return width * 2.2 * math.sqrt(u) * (1 - u) ** 1.3
-    left, right = [], []
-    for i in range(1, steps):
-        u = i / steps
-        (px, py), (nx, ny) = centre(u)
-        w = half_width(u)
-        left.append((px + nx * w, py + ny * w))
-        right.append((px - nx * w, py - ny * w))
-    base, tip = centre(0)[0], centre(1)[0]
-    return [base] + left + [tip] + right[::-1]
+def node(i, points, stroke='#808080', width=1):
+    return poly(points, stroke, width, attrs=f' id="{ID}_node_{i}" {PARKED}')
 
 
-def ornament(ox, oy, length, turn, mirror, dots=True):
-    """One paisley with its base at (ox, oy), turned by `turn` degrees clockwise;
-    mirrored ones curl the other way."""
-    m = -1 if mirror else 1
-    a = math.radians(turn * m)
-    c, s_ = math.cos(a), math.sin(a)
-    def put(pts):
-        return [(ox + (m * x) * c - y * s_, oy + (m * x) * s_ + y * c) for x, y in pts]
-    width = length * 0.3
-    bend = 120
-    outer = paisley(length, width, bend, 26)
-    # The inner paisley and the lace dots are the outline shrunk about its centroid.
-    cx = sum(x for x, _ in outer) / len(outer)
-    cy = sum(y for _, y in outer) / len(outer)
-    def shrink(pts, k):
-        return [(cx + (x - cx) * k, cy + (y - cy) * k) for x, y in pts]
-    inner = shrink(paisley(length, width, bend, 18), 0.5)
-    lines = [poly(put(outer), '#333333'), poly(put(inner), '#262626')]
-    if dots:
-        for x, y in put(shrink(paisley(length, width, bend, 12), 0.76))[2:9]:
-            lines.append(f'<circle cx="{num(x)}" cy="{num(y)}" r="1" fill="#333333" stroke="#333333" stroke-width="0.5"/>')
-    return lines
+def circle_node(i, r, fill='none', stroke='#808080', width=1):
+    return f'<circle id="{ID}_node_{i}" {PARKED} cx="0" cy="0" r="{num(r)}" fill="{fill}" stroke="{stroke}" stroke-width="{width}"/>'
+
+
+def rect(cx, cy, w, h, colour):
+    return poly([(cx - w / 2, cy - h / 2), (cx + w / 2, cy - h / 2), (cx + w / 2, cy + h / 2), (cx - w / 2, cy + h / 2)],
+                colour, 0.5, fill=colour)
+
+
+def dot(cx, cy, r, colour):
+    return f'<circle cx="{num(cx)}" cy="{num(cy)}" r="{num(r)}" fill="{colour}" stroke="{colour}" stroke-width="0.5"/>'
+
+
+def ribbon(points, colour, half=0.4):
+    """A polyline as a thin closed shape: out along the points, back a little to
+    the right, so the OP-XY has area to draw and no streaks."""
+    return poly(points + [(x + 2 * half, y) for x, y in points[::-1]], colour, 0.5, fill=colour)
+
+
+def model_icon(k, cx, cy):
+    if k == 0:   # modal: concentric rings
+        return [f'<circle cx="{cx}" cy="{cy}" r="2.2" fill="none" stroke="{ICON}" stroke-width="0.8"/>',
+                f'<circle cx="{cx}" cy="{cy}" r="4.6" fill="none" stroke="{ICON}" stroke-width="0.8"/>']
+    if k == 1:   # string: a spectrum of bars
+        return [rect(cx + x, cy, 1, h, ICON) for x, h in ((-4, 5), (-2, 8), (0, 6), (2, 9), (4, 4))]
+    if k == 2:   # sympathetic: three wavy strings
+        lines = []
+        for x in (-3.6, -0.4, 2.8):
+            lines.append(ribbon([(cx + x + 1.1 * math.sin(i * math.pi / 2), cy - 5 + i * 2.5) for i in range(5)], ICON))
+        return lines
+    # chords: a stack of bars
+    return [rect(cx, cy + y, w, 1.2, ICON) for y, w in ((-3.5, 9), (0, 6), (3.5, 3.5))]
+
+
+def modes_icon(k, cx, cy):
+    spots = [[(0, 0)], [(-2.6, 0), (2.6, 0)], [(0, -2.6), (-2.4, 1.6), (2.4, 1.6)],
+             [(-2.4, -2.4), (2.4, -2.4), (-2.4, 2.4), (2.4, 2.4)]][k]
+    return [dot(cx + x, cy + y, 1.3, ICON) for x, y in spots]
+
+
+def petal(inner, outer, width, tip_out=True):
+    """A leaf pointing up from radius `inner` to `outer`, in local coordinates
+    about the body's centre; the display turns it around the body."""
+    r0, r1 = (inner, outer) if tip_out else (outer, inner)
+    mid = (r0 + r1) / 2
+    pts = [(0, -r0), (width * 0.62, -(r0 + (mid - r0) * 0.55)), (width, -mid), (width * 0.76, -(mid + (r1 - mid) * 0.6)),
+           (0, -r1), (-width * 0.76, -(mid + (r1 - mid) * 0.6)), (-width, -mid), (-width * 0.62, -(r0 + (mid - r0) * 0.55))]
+    return pts
 
 
 out = [f'<g id="{ID}_panel">',
@@ -80,8 +110,8 @@ out = [f'<g id="{ID}_panel">',
 for i, colour in enumerate(BARS):
     out.append(f'<path id="{ID}_node_{i}" transform="matrix(1 0 0 1 {i * 60} 0)" d="M0,0 L60,0 L60,20 L0,20 Z" '
                f'fill="{colour}" stroke="{colour}" stroke-width="0.5"/>')
-titles = ['struct', 'bright', 'damping', 'position', 'modes', 'strike', 'damping', 'position']
-values = ['50', '50', '50', '50', '4', '50', '50', '50']
+titles = ['struct', 'bright', 'damping', 'position', 'model', 'strike', 'damping', 'modes']
+values = ['50', '50', '50', '50', 'modal', '0', '50', '12']
 for i in range(4):
     dark = '#000000' if i >= 2 else '#CBCBCB'
     out.append(f'<text id="{ID}_text_{i}" transform="matrix(1 0 0 1 {5 + 120 * i} 10)" fill="{dark}" {FONT} font-size="10px">{titles[i]}</text>')
@@ -93,23 +123,35 @@ for i in range(4):
 for i in range(4):
     out.append(f'<text id="{ID}_text_{12 + i}" transform="matrix(1 0 0 1 {65 + 120 * i} 33)" fill="#707070" {FONT} font-size="13px">{values[4 + i]}</text>')
 
-out.append('<!-- Paisley filigree either side of the tile, after the Mutable Instruments panels. -->')
-for mirror, sx in ((False, 1), (True, -1)):
-    # Either side of the tile: a large paisley rising from the bottom and curling
-    # outwards, a small one above it curling back, and a bud near the tile.
-    side = CX - sx * (HALF + 76)          # the side area's centre, 76 px off the tile
-    out += ornament(side - sx * 6, 142, 80, 22, mirror)
-    out += ornament(side - sx * 34, 78, 42, 30, not mirror, dots=False)
-    out += ornament(side + sx * 40, 92, 34, 200, mirror, dots=False)
+out.append('<!-- The LEDs\' icons, as on the Rings panel: models on the left, modes on the right. -->')
+for k, y in enumerate(LED_Y):
+    out += model_icon(k, LED_X[0], y)
+    out += modes_icon(k, LED_X[1], y)
 
-out.append('<!-- The tile: a thin square, as the Rings logo frames its ripples. -->')
-out.append(poly([(CX - HALF, CY - HALF), (CX + HALF, CY - HALF), (CX + HALF, CY + HALF), (CX - HALF, CY + HALF)], '#3A3A3A'))
-out.append('<!-- Rings, one per partial, the strike point, and ripples from it: all placed by the display. -->')
-for i in range(RINGS):
-    out.append(f'<circle id="{ID}_node_{FIRST_RING + i}" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="40" fill="none" stroke="#808080" stroke-width="1"/>')
-out.append(f'<circle id="{ID}_node_{STRIKE}" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="2.5" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1"/>')
+out.append('<!-- Everything below is placed by the display. The body: its circle, inner rings, strings and centre. -->')
+out.append(circle_node(BODY_NODE, BODY, stroke='#A0A0A0'))
+for i, r in enumerate(INNER):
+    out.append(circle_node(FIRST_INNER + i, r))
+out.append(f'<circle id="{ID}_node_{CENTRE}" {PARKED} cx="0" cy="0" r="2" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="0.5"/>')
+out.append(f'<circle id="{ID}_node_{STRIKE}" {PARKED} cx="0" cy="0" r="2.5" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1"/>')
 for i in range(RIPPLES):
-    out.append(f'<circle id="{ID}_node_{FIRST_RIPPLE + i}" transform="matrix(1 0 0 1 640 320)" cx="0" cy="0" r="40" fill="none" stroke="#808080" stroke-width="1"/>')
+    out.append(circle_node(FIRST_RIPPLE + i, 40))
+for i in range(STRINGS):
+    out.append(node(FIRST_STRING + i, [(-50, -0.4), (50, -0.4), (50, 0.4), (-50, 0.4)], width=0.5))
+out.append('<!-- The mandala: three rings of petals about the body, each turned by the display. -->')
+for i in range(PETALS_A):
+    out.append(node(FIRST_A + i, petal(58, 71, 4.2)))
+for i in range(PETALS_B):
+    out.append(node(FIRST_B + i, petal(73, 82, 2.6, tip_out=False)))
+for i in range(PETALS_C):
+    out.append(node(FIRST_C + i, [(0, -88), (1.8, -86), (0, -84), (-1.8, -86)]))
+out.append('<!-- The LEDs and the halo that marks a change. -->')
+for i in range(4):
+    out.append(circle_node(FIRST_MODEL_LED + i, LED_R, stroke='#808080', width=1.2))
+for i in range(4):
+    out.append(circle_node(FIRST_MODES_LED + i, LED_R, stroke='#808080', width=1.2))
+for i in range(2):
+    out.append(circle_node(HALO + i, LED_R + 4, stroke='#808080', width=1))
 for i in range(PALETTE):
     grey = f'#{i * 17:02x}{i * 17:02x}{i * 17:02x}'
     out.append(f'<circle id="{ID}_palette_{i}" cx="640" cy="0" r="1" fill="{grey}" stroke="{grey}" stroke-width="1"/>')

@@ -26,15 +26,20 @@ Two pages of four encoders; a press of any encoder switches pages.
 | Damping | The decay, from a short knock to tens of seconds; 95 and above sustains a string for ever |
 | Position | The strike or pluck point: 0 rings every partial, 100 the middle. On a string it also sets the pickup's comb and the pluck's length |
 | Model (page 2, with Struct) | modal, string, sympath, chords |
-| Modes (page 2, with Bright) | Modal only: how many partials ring, 4 to 24; fewer cost less CPU |
-| Strike (page 2, with Damping) | Modal only: 0 is a single pulse, as Rings strikes; higher turns it into a noise burst of up to 256 samples at the same energy |
+| Strike (page 2, with Bright) | Modal only: 0 is a single pulse, as Rings strikes; higher turns it into a noise burst of up to 256 samples at the same energy |
+| Modes (page 2, with Position) | Modal only: how many partials ring, 6, 12, 18 or 24, as Rings' polyphony button trades voices for partials; fewer cost less CPU |
 
-The screen shows both pages in the shared header. Under it, a square tile of
-concentric rings after the Rings logo, one ring per partial at 12 pixels an
-octave above the note: Structure bunches them into a harmonic series or spreads
-them into a bell, Position sets the strike point along the tile and weights each
-ring, and a note sends ripples out from the strike point for as long as Damping
-lets them linger. Paisley filigree either side nods to the Mutable panels.
+The screen shows both pages in the shared header. Either side sit the Rings
+panel's LEDs: the four models on the left (rings, bars, waves, a chord stack),
+the four Modes steps on the right (one to four dots), the chosen one lit and
+haloed for a second when it changes. In the middle is the body: a circle with
+a dot at its centre, holding three inner rings for the modal body or the
+strings of the string bodies, lit by Bright. Around it turns a mandala of
+petals, slowly at rest, kicked by every note and easing back over Damping's
+time; Structure brings the petals in, every second one of the inner ring
+first, then the rest, then a middle ring turning the other way, then the rim.
+Position places the pluck point on the body's diameter and a note sends
+ripples out from it. Reduced motion holds the mandala still.
 
 ## Implementation
 
@@ -69,8 +74,8 @@ pluck is spent and the sum has fallen below the floor. Against a transcription o
 within 0.34 cents and their decay rates within 0.45 percent, with the same
 partials counted in and out of the band.
 
-The two-page header and the ring tile are drawn by `display.cpp` from
-`series.h`, which both the sound and the screen use to lay out the partials.
+The two-page header, the LEDs, the body and the mandala are drawn by
+`display.cpp`; the mandala is 52 petal nodes turned about the body's centre.
 `tools/gen_panel.py` generates `panel.svg.fragment`.
 `tools/gen_tables.py` generates `tables.h` (sine, Rings' stiffness and
 damping curves, fractional octaves).
@@ -81,7 +86,7 @@ damping curves, fractional octaves).
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, the model switch, the strike, the mode bank and the limiter |
 | [strings.h](strings.h) | The string loop, the pluck and the sympathetic strings' notes |
 | [series.h](series.h), [tables.h](tables.h), [tools/gen_tables.py](tools/gen_tables.py) | The partial series and the generated tables |
-| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | The header and the ring tile |
+| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | The header, the LEDs, the body and the mandala |
 | [tests/sound.cpp](tests/sound.cpp) | Sound checks: strike and pluck level and decay, modal and string tuning, each control's direction, every corner of every model bounded, a ten-second sympathetic sustain, silence |
 | [machine.json](machine.json) | Kind, identity, description and builder glyph |
 

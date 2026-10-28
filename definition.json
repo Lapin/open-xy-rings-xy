@@ -65,42 +65,9 @@
       "display": "enum"
     },
     {
-      "id": "modes",
-      "label": "Modes",
-      "control": 1,
-      "default": 0.5952380952380952,
-      "mapping": {
-        "kind": "enum",
-        "labels": [
-          "4",
-          "5",
-          "6",
-          "7",
-          "8",
-          "9",
-          "10",
-          "11",
-          "12",
-          "13",
-          "14",
-          "15",
-          "16",
-          "17",
-          "18",
-          "19",
-          "20",
-          "21",
-          "22",
-          "23",
-          "24"
-        ]
-      },
-      "display": "enum"
-    },
-    {
       "id": "strike",
       "label": "Strike",
-      "control": 2,
+      "control": 1,
       "default": 0,
       "mapping": {
         "kind": "linear",
@@ -108,6 +75,22 @@
         "maximum": 1
       },
       "display": "percent"
+    },
+    {
+      "id": "modes",
+      "label": "Modes",
+      "control": 2,
+      "default": 0.375,
+      "mapping": {
+        "kind": "enum",
+        "labels": [
+          "6",
+          "12",
+          "18",
+          "24"
+        ]
+      },
+      "display": "enum"
     }
   ],
   "presets": {
@@ -117,7 +100,7 @@
       "damping": 0.6,
       "position": 0,
       "model": 0.125,
-      "modes": 0.5952380952380952,
+      "modes": 0.375,
       "strike": 0
     },
     "Bell": {
@@ -126,7 +109,7 @@
       "damping": 0.75,
       "position": 0.2,
       "model": 0.125,
-      "modes": 0.7857142857142857,
+      "modes": 0.625,
       "strike": 0
     },
     "Brushed": {
@@ -135,7 +118,7 @@
       "damping": 0.5,
       "position": 0.1,
       "model": 0.125,
-      "modes": 0.5952380952380952,
+      "modes": 0.375,
       "strike": 0.7
     },
     "Pluck": {
@@ -144,7 +127,7 @@
       "damping": 0.5,
       "position": 0.3,
       "model": 0.375,
-      "modes": 0.5952380952380952,
+      "modes": 0.375,
       "strike": 0
     },
     "Sympathy": {
@@ -153,7 +136,7 @@
       "damping": 0.7,
       "position": 0.25,
       "model": 0.625,
-      "modes": 0.5952380952380952,
+      "modes": 0.375,
       "strike": 0
     },
     "Chord": {
@@ -162,7 +145,7 @@
       "damping": 0.75,
       "position": 0.3,
       "model": 0.875,
-      "modes": 0.5952380952380952,
+      "modes": 0.375,
       "strike": 0
     }
   },
@@ -173,11 +156,11 @@
     "sharedBytes": 0,
     "outputPeakQ31": 1073741824,
     "display": {
-      "stateBytes": 164,
+      "stateBytes": 72,
       "stateAlignment": 4,
       "paths": 0,
       "points": 0,
-      "nodes": 24,
+      "nodes": 83,
       "texts": 16,
       "palette": 16
     }
