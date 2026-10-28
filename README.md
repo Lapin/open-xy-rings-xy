@@ -148,7 +148,7 @@ measured.
 
 Follow the SDK's [firmware build guide](https://github.com/etcetc000/open-xy/blob/staging/docs/build.md)
 and [hardware profiling workflow](https://github.com/etcetc000/open-xy/blob/staging/docs/profiling.md).
-Measured on an OP-XY on 2026-10-28 at commit fdfc637 with the SDK's
+Measured on an OP-XY on 2026-10-28 at commit a97ba6f with the SDK's
 `opxy-synth-c8-v1` workload (note 60, every control at its midpoint: the
 sympathetic model at two strings): 1.41% of the stock block budget per voice,
 median of three runs, against Karplus at 3.0% in the same runs. The report is

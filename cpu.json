@@ -1,9 +1,9 @@
 {
   "cpu": {
     "benchmark": "opxy-synth-c8-v1",
-    "commit": "fdfc63726f708b9d2e3e3401449fafdee43c7259",
-    "firmware_sha256": "ae64ade355e90b806f01b726d3836f5e450a768fad54592f91debf864116b3f1",
+    "commit": "a97ba6f36f3bff613bec7e4497039d2cb14f32a8",
+    "firmware_sha256": "24ec09e4d4fd3c2b1d28380e2cab5a9e82133b16722d89a2b15f96a7adc613e7",
     "runs": 3,
-    "block_percent": 1.406882
+    "block_percent": 1.408408
   }
 }
