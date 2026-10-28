@@ -37,9 +37,9 @@ a dot at its centre, holding three inner rings for the modal body or the
 strings of the string bodies, lit by Bright. Around it turns a mandala, a
 different one for each model, lifted from Mutable's panel files into
 straight-line outlines: the modal body has the Rings panel's Frequency knob,
-twelve paisleys under two wavy rings; the string body has the Elements
-panel's Mallet knob, sixteen toothed arches with spikes and leaves inside a
-sun; the sympathetic body has Elements' Flow knob, ten spikes each flanked
+twelve paisleys under two wavy rings; the string body has the Clouds panel's
+Position knob, a lotus of four petals and four flowers in a ring; the
+sympathetic body has Elements' Flow knob, ten spikes each flanked
 by two drops with eyes; the chords body has Rings' Structure knob, four nested
 triangles under beaded arcs, with flowers between. The body circle shrinks to
 sit inside the denser ones. The mandala turns slowly at rest, is kicked by
@@ -85,7 +85,7 @@ partials counted in and out of the band.
 The two-page header, the LEDs, the body and the mandala are drawn by
 `display.cpp`; the four mandalas are 221 nodes turned about the body's
 centre, one model's set shown at a time. `tools/extract_motif.py` lifts the
-motifs from Mutable's `rings.ai` and `elements.ai` (converted with
+motifs from Mutable's `rings.ai`, `elements.ai` and `clouds.ai` (converted with
 `pdftocairo -svg`) into `tools/motif.json`, which `tools/gen_panel.py` scales
 into `panel.svg.fragment` and lays out in `mandala.h` for the display.
 `tools/gen_panel.py` generates `panel.svg.fragment`.
@@ -134,6 +134,6 @@ Keep firmware and stock content outside every checkout.
 The code in this folder is covered by [LICENSE](LICENSE). The partial series,
 string loop, decay rules and exciters follow Mutable Instruments Rings,
 Copyright 2015 Emilie Gillet, MIT licence; no Rings source is included. The
-screen's mandalas are traced from the Rings and Elements panel artwork in
+screen's mandalas are traced from the Rings, Elements and Clouds panel artwork in
 Mutable's hardware files, CC BY-SA 3.0, Emilie Gillet; `tools/motif.json`
 carries that licence.

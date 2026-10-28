@@ -13,6 +13,7 @@ the 64 KB the SDK allows, and the first frame places or hides every one.
 import json
 import math
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -42,7 +43,7 @@ FIRST_RIPPLE, RIPPLES = 14, 3          # 14..16
 FIRST_STRING, STRINGS = 17, 4          # 17..20
 FIRST_MANDALA = 21
 REACH = 88                             # a mandala's outermost pixel from the centre
-TOLERANCE = 0.4
+TOLERANCE = 0.3                        # px: the outlines simplified to what the screen can show
 
 # The motifs lifted from Mutable's panels (tools/extract_motif.py), one per
 # model. The paisley is flipped so its tip points outwards, scaled, and slid out
@@ -97,7 +98,7 @@ def reach(groups):
         if 'circle' in grp:
             cx, cy, r = grp['circle']
             d = math.hypot(cx, cy)
-            low, high = min(low, d - r), max(high, d + r)
+            low, high = min(low, abs(d - r)), max(high, d + r)
         else:
             for x, y in grp['points']:
                 d = math.hypot(x, y)
@@ -260,6 +261,9 @@ for (fold, body, groups), model in zip(table, MODELS):
     header.append(f'    {{{fold}, {body}, {{{rows}{", " + pad if pad else ""}}}}},  // {model}')
 header += ['};', '}', '']
 open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'mandala.h'), 'w').write('\n'.join(header))
+definition = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'definition.json')
+text = open(definition).read()
+open(definition, 'w').write(re.sub(r'"nodes": \d+', f'"nodes": {NODES}', text, count=1))
 
 out.append('<!-- The LEDs and the halo that marks a change. -->')
 for i in range(4):
