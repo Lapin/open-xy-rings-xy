@@ -7,7 +7,6 @@
 
 namespace {
 const unsigned N = opxy::block_frames;
-const opxy::i32 kFull = 0x7fffffff;
 const opxy::i32 kPeak = 1073741824;  // definition.json's outputPeakQ31
 int failures = 0;
 

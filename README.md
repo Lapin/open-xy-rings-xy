@@ -23,9 +23,12 @@ Two pages of four encoders; a press of any encoder switches pages.
 | Modes (page 2, with Struct) | How many partials ring, 4 to 24; fewer cost less CPU |
 | Strike (page 2, with Bright) | 0 is a single pulse, as Rings strikes; higher turns it into a noise burst of up to 256 samples at the same energy |
 
-The screen shows both pages in the shared header. Under it, a spike per partial,
-left to right by pitch at an octave every 56 pixels, as tall as Position lets
-it ring: watch Structure fan the spikes out and Position comb them.
+The screen shows both pages in the shared header. Under it, a square tile of
+concentric rings after the Rings logo, one ring per partial at 12 pixels an
+octave above the note: Structure bunches them into a harmonic series or spreads
+them into a bell, Position sets the strike point along the tile and weights each
+ring, and a note sends ripples out from the strike point for as long as Damping
+lets them linger. Paisley filigree either side nods to the Mutable panels.
 
 ## Implementation
 
@@ -45,8 +48,9 @@ a note costs less as it fades. Against a transcription of Rings' float
 within 0.34 cents and their decay rates within 0.45 percent, with the same
 partials counted in and out of the band.
 
-The two-page header and the spikes are drawn by `display.cpp` from
+The two-page header and the ring tile are drawn by `display.cpp` from
 `series.h`, which both the sound and the screen use to lay out the partials.
+`tools/gen_panel.py` generates `panel.svg.fragment`.
 `tools/gen_tables.py` generates `tables.h` (sine, Rings' stiffness and
 damping curves, fractional octaves).
 
@@ -55,7 +59,7 @@ damping curves, fractional octaves).
 | [definition.json](definition.json) | Controls, presets, resource declarations and the display's budget |
 | [core.h](core.h), [engine.cpp](engine.cpp) | Voice state, the strike, the mode bank and the limiter |
 | [series.h](series.h), [tables.h](tables.h), [tools/gen_tables.py](tools/gen_tables.py) | The partial series and the generated tables |
-| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | The header and the partial picture |
+| [display.h](display.h), [display.cpp](display.cpp), [panel.svg.fragment](panel.svg.fragment) | The header and the ring tile |
 | [tests/sound.cpp](tests/sound.cpp) | Sound checks: strike level and decay, tuning, each control's direction, every corner bounded, silence |
 | [machine.json](machine.json) | Kind, identity, description and builder glyph |
 
