@@ -155,17 +155,19 @@ def drawn_sympathetic():
 def leaf_veins(cx, cy, radius, veins=(7, 1.5, -4), angle=42, half=0.4):
     """A leaf's midrib along the radius with veins each side, as one thin
     closed ribbon inside a circle: up the midrib drawing the right veins, down
-    it drawing the left. Each vein runs from the midrib to the circle's edge."""
+    it drawing the left. The midrib spans the circle; the veins stop just
+    inside its edge, so their stroke never crosses it."""
     a = math.radians(angle)
+    inside = radius - 1.2                                 # the veins stop short of the edge
     def to_edge(y, side):
         dx, dy = side * math.sin(a), -math.cos(a)        # towards the tip
-        t = -y * dy + math.sqrt((y * dy) ** 2 - (y * y - radius * radius))
+        t = -y * dy + math.sqrt((y * dy) ** 2 - (y * y - inside * inside))
         return dx * t, y + dy * t
     def vein(y, side):
         ex, ey = to_edge(y, side)
         nx, ny = -side * math.cos(a) * half, -math.sin(a) * half   # a step across the vein
         return [(0, y), (ex, ey), (ex + nx, ey + ny), (nx, y + ny)]
-    base, tip = radius - 2, -(radius - 2)                 # the tip points outwards (-y)
+    base, tip = radius, -radius                           # the midrib spans the circle; the tip points outwards (-y)
     pts = [(half, base)]
     for y in sorted(veins, reverse=True):
         pts += vein(y, 1)
