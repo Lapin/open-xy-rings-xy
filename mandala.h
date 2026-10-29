@@ -2,7 +2,7 @@
 #pragma once
 #include <opxy/types.hpp>
 
-namespace rings_xy {
+namespace ringsxy {
 const opxy::u32 kPaths = 4, kPathPoints = 64, kHeaderNode = 4, kBodyNode = 12;
 const opxy::u32 kFirstInner = 13, kInnerRings = 5, kCentreNode = 18;
 const opxy::u32 kFirstMandala = 19, kModelLed = 252, kModesLed = 253, kHaloNode = 254, kNodes = 256;

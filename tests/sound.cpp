@@ -18,8 +18,8 @@ opxy::i32 control(double v) { return static_cast<opxy::i32>(v * 2147483647.0 + 0
 opxy::u32 increment(double hz) { return static_cast<opxy::u32>(hz / 44100.0 * 4294967296.0 + 0.5); }
 
 struct Note {
-    rings_xy::Voice voice;
-    rings_xy::Shared shared;
+    ringsxy::Voice voice;
+    ringsxy::Shared shared;
     opxy::i32 parameters[8];
     opxy::u32 pitch[N];
     opxy::i32 output[N];
@@ -33,14 +33,14 @@ struct Note {
         for (unsigned i = 0; i < N; ++i) pitch[i] = increment(hz);
         unsigned char* bytes = reinterpret_cast<unsigned char*>(&voice);
         for (unsigned i = 0; i < sizeof voice; ++i) bytes[i] = 0;
-        rings_xy::initialize(voice, shared, 1);
-        rings_xy::start(voice, shared, 1);
+        ringsxy::initialize(voice, shared, 1);
+        ringsxy::start(voice, shared, 1);
     }
     // Renders blocks; returns their RMS in units of full scale.
     double render(unsigned blocks, double* samples = 0) {
         double energy = 0;
         for (unsigned b = 0; b < blocks; ++b) {
-            rings_xy::render(voice, shared, 1, output, parameters, pitch);
+            ringsxy::render(voice, shared, 1, output, parameters, pitch);
             for (unsigned i = 0; i < N; ++i) {
                 const double s = output[i] / 2147483648.0;
                 if (samples) samples[b * N + i] = s;
@@ -62,7 +62,7 @@ int main() {
         const opxy::i32 kOne = 2147483647;
         const opxy::i32 lf = control(0.9);
         const double expected = std::pow(2.0, -7.2) * 2147483648.0;
-        const double got = rings_xy::exp2_scale(kOne, -lf);
+        const double got = ringsxy::exp2_scale(kOne, -lf);
         check(std::fabs(got - expected) < expected * 0.01, "exp2_scale wrong for a large negative exponent");
     }
     {   // A default note: a clear strike that decays over a second.
@@ -118,7 +118,7 @@ int main() {
             for (unsigned p = 0; p < 2; ++p) for (unsigned model = 0; model < 4; ++model) {
                 Note note(hz[p], st, br, da, po, mo, strike, 0.125 + 0.25 * model);
                 note.render(40);
-                rings_xy::start(note.voice, note.shared, 1);  // a restrike on a ringing voice
+                ringsxy::start(note.voice, note.shared, 1);  // a restrike on a ringing voice
                 note.render(40);
                 note.parameters[0] = control(0.5); note.parameters[3] = control(0.3);  // a turn mid-note
                 note.render(40);
@@ -172,6 +172,6 @@ int main() {
         note.voice.pending = 0;
         check(note.render(10) == 0, "unstruck voice sounds");
     }
-    if (!failures) std::puts("rings_xy sound checks passed");
+    if (!failures) std::puts("ringsxy sound checks passed");
     return failures ? 1 : 0;
 }

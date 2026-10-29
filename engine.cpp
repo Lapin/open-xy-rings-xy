@@ -1,4 +1,4 @@
-// rings_xy: Mutable Instruments Rings' resonator models (rings/dsp, MIT,
+// ringsxy: Mutable Instruments Rings' resonator models (rings/dsp, MIT,
 // Emilie Gillet), rewritten in fixed point for the OP-XY. Modal: a note
 // strikes a bank of up to 24 two-pole resonators tuned to a partial series that
 // Structure bends from compressed, through harmonic, to bell-like; Bright sets
@@ -7,7 +7,7 @@
 #include "core.h"
 #include <opxy/q31.hpp>
 
-namespace rings_xy {
+namespace ringsxy {
 using opxy::i32;
 using opxy::u32;
 using opxy::q31::multiply;

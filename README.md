@@ -2,7 +2,8 @@
 
 The four resonator models of Mutable Instruments' Rings for the OP-XY,
 rewritten in fixed point. The name is this port's own, as Mutable's
-guidelines for derivative works ask. Model chooses them as the module's button does. Modal: each note
+guidelines for derivative works ask; its id is `ringsxy`, since the OP-XY
+firmware halts at boot on a machine id of `rings_xy`. Model chooses them as the module's button does. Modal: each note
 strikes a bank of up to 24 two-pole resonators tuned to a partial series that
 Structure bends from compressed, through harmonic, to stretched and bell-like.
 String: a plucked Karplus-Strong loop with Rings' damping filters, dispersion
@@ -136,8 +137,8 @@ Keep the [SDK](https://github.com/etcetc000/open-xy) beside this folder on
 
 ```sh
 python ../open-xy/sdk.py test --machine .
-python ../open-xy/sdk.py preview --machine . --out ../previews/rings_xy-001
-python ../open-xy/tools/serve_harness.py --preview ../previews/rings_xy-001
+python ../open-xy/sdk.py preview --machine . --out ../previews/ringsxy-001
+python ../open-xy/tools/serve_harness.py --preview ../previews/ringsxy-001
 ```
 
 The host CPU estimate overstates this machine: the estimate's reference loop

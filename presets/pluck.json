@@ -85,6 +85,6 @@
  "octave": 0,
  "platform": "OP-XY",
  "regions": [],
- "type": "rings_xy",
+ "type": "ringsxy",
  "version": 4
 }

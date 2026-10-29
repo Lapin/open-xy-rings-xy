@@ -2,7 +2,7 @@
 #include <opxy/page_header.hpp>
 #include "mandala.h"
 
-namespace rings_xy {
+namespace ringsxy {
 // Matches resources.display in definition.json: paths, points, nodes, texts, palette.
 // The node map, shared with tools/gen_panel.py and laid out in mandala.h
 // (generated with the artwork): the four mutable outlines that draw the

@@ -7,7 +7,7 @@
 #include <opxy/q31.hpp>
 #include "tables.h"
 
-namespace rings_xy {
+namespace ringsxy {
 const unsigned kMaxModes = 24;
 const unsigned kModeChoices = 4;
 const unsigned kModeCounts[kModeChoices] = {1, 3, 8, 24};  // the Size enum: bare, lean, full, lush

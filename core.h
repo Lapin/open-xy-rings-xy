@@ -2,7 +2,7 @@
 #include <opxy/audio.hpp>
 #include "series.h"
 
-namespace rings_xy {
+namespace ringsxy {
 // The resonator's signal format: 1.0 is 1 << 24, leaving 128x headroom for the
 // sum of the modes before the limiter.
 const opxy::i32 kUnity = 1 << 24;
