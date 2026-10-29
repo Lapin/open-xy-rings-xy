@@ -20,6 +20,18 @@ no floating point. Rings' reverb model and its Easter eggs are not ported.
 
 Two pages of four encoders; a press of any encoder switches pages.
 
+The screen for each model, from the SDK's browser preview a moment after a
+note, with the Harmonic, Pluck, Sympathy and Chord presets:
+
+| Modal | String |
+| --- | --- |
+| ![The modal body: the Rings panel's frequency knob as a mandala of paisleys around the struck body](docs/screen-modal.png) | ![The string body: a lotus of petals around a string whose bars rise on a note](docs/screen-string.png) |
+
+| Sympathetic | Chords |
+| --- | --- |
+| ![The sympathetic body: a ring of leaf-veined circles around three S-waves](docs/screen-sympathetic.png) | ![The chords body: three rings of lens petals around three strings](docs/screen-chords.png) |
+
+
 | Control | What it does |
 | --- | --- |
 | Struct | Modal: the partial series, 0 compressed, 45 to 55 harmonic and in tune, higher a bell. String: dispersion, harmonic at 45 to 55, stiff above. Sympathetic: the three strings' notes up the ladder. Chords: which chord |
