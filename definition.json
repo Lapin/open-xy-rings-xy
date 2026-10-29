@@ -7,7 +7,7 @@
     {
       "id": "structure",
       "label": "Struct",
-      "default": 0.25,
+      "default": 0.5,
       "mapping": {
         "kind": "linear",
         "minimum": 0,
