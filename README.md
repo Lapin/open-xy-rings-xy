@@ -1,7 +1,8 @@
-# MI Rings
+# Rings XY
 
-Mutable Instruments Rings' four resonator models for the OP-XY, rewritten in
-fixed point. Model chooses them as the module's button does. Modal: each note
+The four resonator models of Mutable Instruments' Rings for the OP-XY,
+rewritten in fixed point. The name is this port's own, as Mutable's
+guidelines for derivative works ask. Model chooses them as the module's button does. Modal: each note
 strikes a bank of up to 24 two-pole resonators tuned to a partial series that
 Structure bends from compressed, through harmonic, to stretched and bell-like.
 String: a plucked Karplus-Strong loop with Rings' damping filters, dispersion
@@ -135,8 +136,8 @@ Keep the [SDK](https://github.com/etcetc000/open-xy) beside this folder on
 
 ```sh
 python ../open-xy/sdk.py test --machine .
-python ../open-xy/sdk.py preview --machine . --out ../previews/mi_rings-001
-python ../open-xy/tools/serve_harness.py --preview ../previews/mi_rings-001
+python ../open-xy/sdk.py preview --machine . --out ../previews/rings_xy-001
+python ../open-xy/tools/serve_harness.py --preview ../previews/rings_xy-001
 ```
 
 The host CPU estimate overstates this machine: the estimate's reference loop
@@ -169,7 +170,10 @@ the commit it measured. Four strings, lush and the string model are heavier
 than that workload and are not measured. Keep firmware and stock content
 outside every checkout.
 
-The code in this folder is covered by [LICENSE](LICENSE). The partial series,
+The code in this folder is covered by [LICENSE](LICENSE), MIT. The panel
+artwork traced into `tools/motif.json`, the modal set in `mandala.h` and the
+motifs in `panel.svg.fragment` are CC BY-SA 3.0, covered by
+[ARTWORK-LICENSE.md](ARTWORK-LICENSE.md). The partial series,
 string loop, decay rules and exciters follow Mutable Instruments Rings,
 Copyright 2015 Emilie Gillet, MIT licence; no Rings source is included. The
 screen's modal mandala is traced from the Rings panel artwork in

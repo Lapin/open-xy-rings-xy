@@ -2,7 +2,7 @@
   "schema": 1,
   "sdk": "1.4",
   "kind": "synth",
-  "description": "Mutable Instruments Rings' resonators: a modal bank, a string, and sympathetic strings, free or in chords.",
+  "description": "Rings' resonators, after Mutable Instruments' module: a modal bank, a string, and sympathetic strings, free or in chords.",
   "identity": {
     "engine": 36,
     "page": 84

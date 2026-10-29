@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "id": "mi_rings",
-  "name": "MI Rings",
+  "id": "rings_xy",
+  "name": "Rings XY",
   "press": "page",
   "parameters": [
     {

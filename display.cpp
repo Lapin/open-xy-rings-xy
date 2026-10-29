@@ -15,7 +15,7 @@
 #include "core.h"
 #include "series.h"
 
-namespace mi_rings {
+namespace rings_xy {
 namespace {
 using opxy::i32;
 using opxy::u32;
